@@ -5,4 +5,4 @@ $RECYCLE.BIN/
 
 # VS
 obj/
-.suo
+*.suo
