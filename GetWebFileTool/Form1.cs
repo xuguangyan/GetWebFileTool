@@ -23,8 +23,11 @@ namespace GetWebSiteTool
 
         static string localPath = "";  //本地路径
         static string domainName = ""; //网址域名
-
-        ArrayList list = new ArrayList();
+        static int taskTotal = 1; //总共任务数
+        static int taskDone = 0;  //完成任务数
+        static Queue<String> urls = new Queue<String>(); // 任务队列(url)
+        static Object locker = new Object(); //线程锁
+        static DateTime startTime;
 
         public Form1()
         {
@@ -53,6 +56,8 @@ namespace GetWebSiteTool
         //分析下载
         private void btnGet_Click(object sender, EventArgs e)
         {
+            int threadNum = 1; // 默认线程数
+            int threadNo = 1; // 当前线程序号
             if (txtURL.Text.Trim() == "")
             {
                 MessageBox.Show("请输入分析网址！");
@@ -83,6 +88,20 @@ namespace GetWebSiteTool
                     return;
                 }
 
+                if (txtThreadNum.Text.Trim() == "")
+                {
+                    MessageBox.Show("请输入开启的线程数！");
+                    txtThreadNum.Focus();
+                    return;
+                }
+                threadNum = int.Parse(txtThreadNum.Text);
+
+                if (threadNum<=0)
+                {
+                    MessageBox.Show("开启的线程数应大于0！");
+                    txtThreadNum.Focus();
+                    return;
+                }
             }
 
 
@@ -102,21 +121,54 @@ namespace GetWebSiteTool
             //本地路径，如：D:\\Demo\
             localPath = txtFolder.Text.Trim().TrimEnd('\\') + "\\";
 
-            ShowStatus("开始下载页面...\r\n");
+            //任务数
+            taskTotal = 1;
+            //已完成
+            taskDone = 0;
+
+            startTime = DateTime.Now;
+            ShowStatus("开始下载...\r\n");
             if (url.IndexOf("(*)") > 0)
             {
                 int len = int.Parse(txtLen.Text);
                 int num1 = int.Parse(txtNum1.Text);
                 int num2 = int.Parse(txtNum2.Text);
+                if (num1 > num2)
+                {
+                    MessageBox.Show("开始序号应小于等于结束序号！");
+                    txtNum2.Focus();
+                    return;
+                }
+
+                // 比线程数多出的任务，先放入任务队列
+                urls.Clear();
+                taskTotal = 0;
                 for (int i = num1; i <= num2; i++)
                 {
+                    taskTotal++;
+                    if (taskTotal <= threadNum)
+                    {
+                        continue;
+                    }
+                    string num = AddZero(i.ToString(), len);
+                    string url2 = url.Replace("(*)", num);
+                    urls.Enqueue(url2);
+                }
+                int topNum = Math.Min(taskTotal, threadNum);
+                for (int i = num1; i <= num2; i++)
+                {
+                    if (topNum <= 0)
+                    {
+                        break;
+                    }
+                    topNum--;
                     string num = AddZero(i.ToString(), len);
                     string url2 = url.Replace("(*)", num);
 
                     string filename = getURLPart(url2, 2).Replace('/', '\\');
                     string savePath = localPath + filename;
 
-                    SaveWebFileMethod.BeginInvoke(url2, savePath, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim()});
+                    SaveWebFileMethod.BeginInvoke(url2, savePath, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), (threadNo++).ToString() });
                 }
             }
             else
@@ -124,7 +176,7 @@ namespace GetWebSiteTool
                 string filename = getURLPart(url, 2).Replace('/', '\\');
                 string savePath = localPath + filename;
 
-                SaveWebFileMethod.BeginInvoke(url, savePath, new AsyncCallback(DownFinished), new string[] { url, txtRegEx.Text.Trim(), txtGrp1.Text.Trim() });
+                SaveWebFileMethod.BeginInvoke(url, savePath, new AsyncCallback(DownFinished), new string[] { url, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), threadNo.ToString() });
             }
         }
 
@@ -138,12 +190,18 @@ namespace GetWebSiteTool
             string url = strArry[0];
             string regEx = strArry[1]; //正则表达式
             int grpId = int.Parse(strArry[2]); //匹配组序号
+            int threadNo = int.Parse(strArry[3]); //线程序号
 
             //string url = result.AsyncState.ToString();
             //string regEx = txtRegEx.Text.Trim();
             string filename = getURLPart(url, 2).Replace('/', '\\');
 
-            ShowStatus(filename + " (" + status + ")\r\n");
+            lock (locker)
+            {
+                taskDone++;
+                ShowStatus("线程" + threadNo + "：" + filename + " (" + status + ")\r\n");
+                ShowStatus("任务进度：" + taskDone + "/" + taskTotal + "\r\n");
+            }
 
             string extFile = getURLPart(filename, 3);
             bool isTextFile = ("txt|xml|htm|html|shtml|asp|aspx|php|jsp|js|css".IndexOf(extFile) >= 0);
@@ -157,7 +215,27 @@ namespace GetWebSiteTool
                 sr.Close();
 
                 string urlPath = url.Substring(0, url.LastIndexOf("/") + 1);
-                getFileByRegex(strContent, urlPath, regEx, grpId);
+                getFileByRegex(strContent, urlPath, regEx, grpId, threadNo);
+            }
+            else
+            {
+                lock (locker)
+                {
+                    if (taskDone >= taskTotal)
+                    {
+                        double useTime = (DateTime.Now - startTime).TotalMilliseconds;
+                        string strUseTime = getUseTime(Convert.ToInt64(useTime));
+                        ShowStatus("已完成，任务总数：" + taskTotal + "，耗时：" + strUseTime + "\r\n");
+                    }
+                }
+
+                if (urls.Count > 0)
+                {
+                    string url2 = urls.Dequeue();
+                    string filename2 = getURLPart(url2, 2).Replace('/', '\\');
+                    string savePath2 = localPath + filename2;
+                    SaveWebFileMethod.BeginInvoke(url2, savePath2, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), threadNo.ToString() });
+                }
             }
         }
 
@@ -168,7 +246,8 @@ namespace GetWebSiteTool
         /// <param name="urlPath"></param>
         /// <param name="pattern">正则表达式</param>
         /// <param name="grpId">匹配组id</param>
-        private void getFileByRegex(string content, string urlPath, string pattern, int grpId)
+        /// <param name="threadNo">线程序号</param>
+        private void getFileByRegex(string content, string urlPath, string pattern, int grpId, int threadNo)
         {
             string filePath = getURLPart(urlPath + "test.htm", 2).Replace('/', '\\');
             filePath = filePath.Substring(0, filePath.LastIndexOf("\\") + 1);
@@ -228,7 +307,7 @@ namespace GetWebSiteTool
                 return DOWNFILE_EXISTS;
             }
 
-            byte[] buffer ;
+            byte[] buffer;
             WebClient wc = new WebClient();
             try
             {
@@ -365,7 +444,7 @@ namespace GetWebSiteTool
             }
             else
             {
-                txtStatus.AppendText(msg);
+                txtStatus.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg);
             }
         }
 
@@ -399,6 +478,21 @@ namespace GetWebSiteTool
             {
                 copyFile(dir, newPath);
             }
+        }
+
+        /// <summary>
+        /// 获取耗费时间
+        /// </summary>
+        /// <param name="milliseconds">毫秒数</param>
+        /// <returns></returns>
+        private static string getUseTime(long milliseconds)
+        {
+            int hour = (int)Math.Floor(1.0 * milliseconds / 3600000);
+            int minute = (int)Math.Floor(1.0 * (milliseconds - hour * 3600000) / 60000);
+            int second = (int)Math.Floor(1.0 * (milliseconds - hour * 3600000 - minute * 60000) / 1000);
+            int millisecond = (int)(milliseconds - hour * 3600000 - minute * 60000 - second * 1000);
+            string strTime = string.Format("{0:D2}时 {1:D2}分 {2:D2}秒 {3:D1}", hour, minute, second, millisecond / 100);
+            return strTime;
         }
     }
 }

@@ -52,6 +52,8 @@
             this.txtGrp1 = new System.Windows.Forms.TextBox();
             this.lbGrp2 = new System.Windows.Forms.Label();
             this.txtGrp2 = new System.Windows.Forms.TextBox();
+            this.lblThreadNum = new System.Windows.Forms.Label();
+            this.txtThreadNum = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // lbFile
@@ -67,12 +69,12 @@
             // 
             this.txtFolder.Location = new System.Drawing.Point(74, 41);
             this.txtFolder.Name = "txtFolder";
-            this.txtFolder.Size = new System.Drawing.Size(423, 21);
+            this.txtFolder.Size = new System.Drawing.Size(333, 21);
             this.txtFolder.TabIndex = 1;
             // 
             // btnOpen
             // 
-            this.btnOpen.Location = new System.Drawing.Point(503, 41);
+            this.btnOpen.Location = new System.Drawing.Point(413, 39);
             this.btnOpen.Name = "btnOpen";
             this.btnOpen.Size = new System.Drawing.Size(75, 23);
             this.btnOpen.TabIndex = 2;
@@ -243,6 +245,23 @@
             this.txtGrp2.TabIndex = 12;
             this.txtGrp2.Text = "1";
             // 
+            // lblThreadNum
+            // 
+            this.lblThreadNum.AutoSize = true;
+            this.lblThreadNum.Location = new System.Drawing.Point(500, 44);
+            this.lblThreadNum.Name = "lblThreadNum";
+            this.lblThreadNum.Size = new System.Drawing.Size(53, 12);
+            this.lblThreadNum.TabIndex = 14;
+            this.lblThreadNum.Text = "线程数：";
+            // 
+            // txtThreadNum
+            // 
+            this.txtThreadNum.Location = new System.Drawing.Point(554, 41);
+            this.txtThreadNum.Name = "txtThreadNum";
+            this.txtThreadNum.Size = new System.Drawing.Size(24, 21);
+            this.txtThreadNum.TabIndex = 12;
+            this.txtThreadNum.Text = "1";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -253,10 +272,12 @@
             this.Controls.Add(this.lbRegEx2);
             this.Controls.Add(this.txtRegEx);
             this.Controls.Add(this.lbRegEx);
+            this.Controls.Add(this.lblThreadNum);
             this.Controls.Add(this.lbLen);
             this.Controls.Add(this.lbTo);
             this.Controls.Add(this.txtGrp2);
             this.Controls.Add(this.txtGrp1);
+            this.Controls.Add(this.txtThreadNum);
             this.Controls.Add(this.txtLen);
             this.Controls.Add(this.txtNum2);
             this.Controls.Add(this.txtNum1);
@@ -303,6 +324,8 @@
         private System.Windows.Forms.TextBox txtGrp1;
         private System.Windows.Forms.Label lbGrp2;
         private System.Windows.Forms.TextBox txtGrp2;
+        private System.Windows.Forms.Label lblThreadNum;
+        private System.Windows.Forms.TextBox txtThreadNum;
     }
 }
 
