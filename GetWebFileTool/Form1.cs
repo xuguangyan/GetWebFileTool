@@ -96,7 +96,7 @@ namespace GetWebSiteTool
                 }
                 threadNum = int.Parse(txtThreadNum.Text);
 
-                if (threadNum<=0)
+                if (threadNum <= 0)
                 {
                     MessageBox.Show("开启的线程数应大于0！");
                     txtThreadNum.Focus();
@@ -109,6 +109,25 @@ namespace GetWebSiteTool
             {
                 MessageBox.Show("请选择操作目录！");
                 txtFolder.Focus();
+                return;
+            }
+
+            if (txtRegEx2.Text.Trim().Length > 0)
+            {
+                if (txtRegEx.Text.Trim().Length <= 0 || chkGather.Checked == false)
+                {
+                    MessageBox.Show("请输入第一层正规表达式，并勾选抓取数据！");
+                    return;
+                }
+            }
+            if (txtRegEx.Text.Trim().Length <= 0 && chkGather.Checked)
+            {
+                MessageBox.Show("请输入第一层正规表达式！");
+                return;
+            }
+            if (txtRegEx2.Text.Trim().Length <= 0 && chkGather2.Checked)
+            {
+                MessageBox.Show("请输入第二层正规表达式！");
                 return;
             }
 
@@ -127,7 +146,9 @@ namespace GetWebSiteTool
             taskDone = 0;
 
             startTime = DateTime.Now;
-            ShowStatus("开始下载...\r\n");
+            ShowStatus("开始任务...\r\n");
+            string strGather = chkGather.Checked ? "true" : "false";
+
             if (url.IndexOf("(*)") > 0)
             {
                 int len = int.Parse(txtLen.Text);
@@ -168,7 +189,8 @@ namespace GetWebSiteTool
                     string filename = getURLPart(url2, 2).Replace('/', '\\');
                     string savePath = localPath + filename;
 
-                    SaveWebFileMethod.BeginInvoke(url2, savePath, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), (threadNo++).ToString() });
+                    ShowStatus("下载线程" + threadNo + "：" + filename + "\r\n");
+                    SaveWebFileMethod.BeginInvoke(url2, savePath, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, (threadNo++).ToString() });
                 }
             }
             else
@@ -176,21 +198,30 @@ namespace GetWebSiteTool
                 string filename = getURLPart(url, 2).Replace('/', '\\');
                 string savePath = localPath + filename;
 
-                SaveWebFileMethod.BeginInvoke(url, savePath, new AsyncCallback(DownFinished), new string[] { url, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), threadNo.ToString() });
+                ShowStatus("下载线程" + threadNo + "：" + filename + "\r\n");
+                SaveWebFileMethod.BeginInvoke(url, savePath, new AsyncCallback(DownFinished), new string[] { url, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString() });
             }
         }
 
-        //完成下载
+
+        //完成下载（非阻塞调用）
         private void DownFinished(IAsyncResult result)
         {
             int code = SaveWebFileMethod.EndInvoke(result);
+            DownFinished_End(result, code);
+        }
+
+        //完成下载（阻塞调用）
+        private void DownFinished_End(IAsyncResult result, int code)
+        {
             string status = getDownFileStatus(code);
 
             string[] strArry = result.AsyncState as string[];
             string url = strArry[0];
             string regEx = strArry[1]; //正则表达式
             int grpId = int.Parse(strArry[2]); //匹配组序号
-            int threadNo = int.Parse(strArry[3]); //线程序号
+            bool isGather = bool.Parse(strArry[3]); //是否抓取文件中数据
+            int threadNo = int.Parse(strArry[4]); //线程序号
 
             //string url = result.AsyncState.ToString();
             //string regEx = txtRegEx.Text.Trim();
@@ -199,43 +230,46 @@ namespace GetWebSiteTool
             lock (locker)
             {
                 taskDone++;
-                ShowStatus("线程" + threadNo + "：" + filename + " (" + status + ")\r\n");
+                ShowStatus("完成线程" + threadNo + "：" + filename + " (" + status + ")\r\n");
                 ShowStatus("任务进度：" + taskDone + "/" + taskTotal + "\r\n");
             }
 
             string extFile = getURLPart(filename, 3);
-            bool isTextFile = ("txt|xml|htm|html|shtml|asp|aspx|php|jsp|js|css".IndexOf(extFile) >= 0);
+            // bool isTextFile = ("txt|xml|htm|html|shtml|asp|aspx|php|jsp|js|css".IndexOf(extFile) >= 0);
 
             //获取文件(通过regEx分析)
-            if (regEx != "" && code == DOWNFILE_SUCCESS && isTextFile)
+            if (regEx != "" && (code == DOWNFILE_SUCCESS || code == DOWNFILE_EXISTS)/* && isTextFile*/)
             {
                 string savePath = localPath + filename;
                 StreamReader sr = File.OpenText(savePath);
                 string strContent = sr.ReadToEnd();
                 sr.Close();
 
+                ShowStatus("开始正则分析：" + filename + " ========\r\n");
                 string urlPath = url.Substring(0, url.LastIndexOf("/") + 1);
-                getFileByRegex(strContent, urlPath, regEx, grpId, threadNo);
+                getFileByRegex(strContent, urlPath, regEx, grpId, isGather, threadNo);
+                ShowStatus("完成正则分析：" + filename + " ========\r\n");
             }
-            else
-            {
-                lock (locker)
-                {
-                    if (taskDone >= taskTotal)
-                    {
-                        double useTime = (DateTime.Now - startTime).TotalMilliseconds;
-                        string strUseTime = getUseTime(Convert.ToInt64(useTime));
-                        ShowStatus("已完成，任务总数：" + taskTotal + "，耗时：" + strUseTime + "\r\n");
-                    }
-                }
 
-                if (urls.Count > 0)
+            lock (locker)
+            {
+                if (taskDone >= taskTotal)
                 {
-                    string url2 = urls.Dequeue();
-                    string filename2 = getURLPart(url2, 2).Replace('/', '\\');
-                    string savePath2 = localPath + filename2;
-                    SaveWebFileMethod.BeginInvoke(url2, savePath2, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), threadNo.ToString() });
+                    double useTime = (DateTime.Now - startTime).TotalMilliseconds;
+                    string strUseTime = getUseTime(Convert.ToInt64(useTime));
+                    ShowStatus("已完成，任务总数：" + taskTotal + "，耗时：" + strUseTime + "\r\n");
                 }
+            }
+
+            if (urls.Count > 0)
+            {
+                string url2 = urls.Dequeue();
+                string filename2 = getURLPart(url2, 2).Replace('/', '\\');
+                string savePath2 = localPath + filename2;
+                string strGather = chkGather.Checked ? "true" : "false";
+
+                ShowStatus("下载线程" + threadNo + "：" + filename2 + "\r\n");
+                SaveWebFileMethod.BeginInvoke(url2, savePath2, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString() });
             }
         }
 
@@ -246,20 +280,37 @@ namespace GetWebSiteTool
         /// <param name="urlPath"></param>
         /// <param name="pattern">正则表达式</param>
         /// <param name="grpId">匹配组id</param>
+        /// <param name="isGether">是否抓取文件中数据</param>
         /// <param name="threadNo">线程序号</param>
-        private void getFileByRegex(string content, string urlPath, string pattern, int grpId, int threadNo)
+        private void getFileByRegex(string content, string urlPath, string pattern, int grpId, bool isGether, int threadNo)
         {
             string filePath = getURLPart(urlPath + "test.htm", 2).Replace('/', '\\');
             filePath = filePath.Substring(0, filePath.LastIndexOf("\\") + 1);
 
             MatchCollection matches = Regex.Matches(content, pattern, RegexOptions.IgnoreCase);
 
+            int curCount = 0, maxCount = 0;
             foreach (Match match in matches)
             {
                 string getUrl = "", localFile = "";
-                string file1 = match.Groups[1].Value;
+                string file1 = match.Groups[grpId].Value;
                 if (file1 == null || file1.Trim().Length <= 0)
                     continue;
+
+                curCount++;
+                // 如果不抓取就只打印并返回
+                if (!isGether)
+                {
+                    ShowStatus("匹配输出=" + file1 + "\r\n");
+                    continue;
+                }
+
+                if (maxCount > 0 && curCount > maxCount)
+                {
+                    ShowStatus("超出嵌套上限（" + maxCount + "），预计舍弃数量（" + (matches.Count - maxCount) + "）\r\n");
+                    break;
+                }
+
                 if (file1.StartsWith("http://") || file1.StartsWith("https://"))//如：http://www.moretuan.net/tuan/feed.php
                 {
                     //if (file1.IndexOf(domainName) < 0)
@@ -287,8 +338,13 @@ namespace GetWebSiteTool
                     localFile = filePath + file1.Replace('/', '\\');
                 }
                 string savePath = localPath + localFile;
+                string strGather = chkGather2.Checked ? "true" : "false";
 
-                SaveWebFileMethod.BeginInvoke(getUrl, savePath, new AsyncCallback(DownFinished), new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim() });
+                ShowStatus("下载文件：" + file1 + "\r\n");
+                // IAsyncResult result = SaveWebFileMethod.BeginInvoke(getUrl, savePath, new AsyncCallback(DownFinished), new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim(), strGather, threadNo.ToString() });
+                IAsyncResult result = SaveWebFileMethod.BeginInvoke(getUrl, savePath, null, new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim(), strGather, threadNo.ToString() });
+                int rstCode = SaveWebFileMethod.EndInvoke(result);  //阻塞线程，实行单线程下线
+                DownFinished_End(result, rstCode);
             }
         }
 
@@ -357,7 +413,8 @@ namespace GetWebSiteTool
             {
                 string fileName = url.Replace("/", "").Replace(":", "").Replace("?", "");
                 cont = fileName + ".html";
-            }else if (groupid == 3 && cont == "")
+            }
+            else if (groupid == 3 && cont == "")
             {
                 cont = "html";
             }
@@ -373,7 +430,7 @@ namespace GetWebSiteTool
         private static string getDownFileStatus(int code)
         {
             string result = "";
-            switch(code)
+            switch (code)
             {
                 case DOWNFILE_SUCCESS:
                     result = "下载成功";
@@ -404,9 +461,9 @@ namespace GetWebSiteTool
             int pos = path.IndexOf('\\', 0);
             while (pos > 0)
             {
-                string dir = path.Substring(0, pos+1);
+                string dir = path.Substring(0, pos + 1);
                 DirectoryInfo info = Directory.CreateDirectory(dir);
-                pos=path.IndexOf('\\',pos+1);
+                pos = path.IndexOf('\\', pos + 1);
             }
         }
 
@@ -448,36 +505,66 @@ namespace GetWebSiteTool
             }
         }
 
-
-
-        //遍历拷贝
+        //扁平化拷贝
         private void btnCopy_Click(object sender, EventArgs e)
         {
+            if (txtFolder.Text.Trim() == "")
+            {
+                MessageBox.Show("请选择操作目录！");
+                txtFolder.Focus();
+                return;
+            }
+
+            ShowStatus("操作开始.." + "\r\n");
             localPath = txtFolder.Text.Trim().TrimEnd('\\') + "\\";
             string newPath = localPath + "backup\\";
+            ShowStatus("原始目录：" + localPath + "\r\n");
+            ShowStatus("目标目录：" + newPath + "\r\n");
+            ShowStatus("目标文件清单如下：" + "\r\n");
             if (!Directory.Exists(newPath))
             {
-                Directory.CreateDirectory(newPath);
+                if (chkRealExecute.Checked)
+                {
+                    Directory.CreateDirectory(newPath);
+                }
             }
-            copyFile(localPath, newPath);
-        }
+            //copyFile(localPath, newPath, true);
 
-        private void copyFile(string path, string newPath)
-        {
-            string filename = "";
-            string[] files = Directory.GetFiles(path, "*.jpg");
-            string[] dirs = Directory.GetDirectories(path);
-
+            string filename = "", filter = "*.*";
+            if (txtFileExt.Text.Trim().Length > 0)
+            {
+                filter = txtFileExt.Text.Trim();
+            }
+            string[] files = GetFiles(localPath, filter, SearchOption.AllDirectories).Where(s => s.IndexOf(newPath) < 0).ToArray();
             foreach (string file in files)
             {
                 filename = file.Replace(localPath, "").Replace("\\", "_");
-                File.Copy(file, newPath + filename);
-                txtStatus.AppendText(filename + "\r\n");
+
+                if (chkOverWrite.Checked || !File.Exists(newPath + filename))
+                {
+                    txtStatus.AppendText("拷贝文件：" + filename + "\r\n");
+                }
+                else
+                {
+                    txtStatus.AppendText("跳过拷贝：" + filename + "\r\n");
+                }
+
+                if (chkRealExecute.Checked)
+                {
+                    if (chkOverWrite.Checked || !File.Exists(newPath + filename))
+                    {
+                        File.Copy(file, newPath + filename, true);
+                    }
+                }
             }
-            foreach (string dir in dirs)
-            {
-                copyFile(dir, newPath);
-            }
+
+            ShowStatus("操作结束.." + "\r\n");
+        }
+
+        // 多个文件过滤器调用GetFiles，如filters="*.jpg|*.bmp"
+        private static string[] GetFiles(string sourceFolder, string filters, System.IO.SearchOption searchOption)
+        {
+            return filters.Split('|').SelectMany(filter => System.IO.Directory.GetFiles(sourceFolder, filter, searchOption)).ToArray();
         }
 
         /// <summary>
@@ -493,6 +580,37 @@ namespace GetWebSiteTool
             int millisecond = (int)(milliseconds - hour * 3600000 - minute * 60000 - second * 1000);
             string strTime = string.Format("{0:D2}时 {1:D2}分 {2:D2}秒 {3:D1}", hour, minute, second, millisecond / 100);
             return strTime;
+        }
+
+        private void chkGather_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkGather.Checked && txtRegEx.Text.Trim().Length <= 0)
+            {
+                MessageBox.Show("请输入第一层正规表达式！");
+                txtRegEx.Focus();
+            }
+        }
+
+        private void chkGather2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkGather2.Checked && txtRegEx2.Text.Trim().Length <= 0)
+            {
+                MessageBox.Show("请输入第二层正规表达式！");
+                txtRegEx2.Focus();
+            }
+        }
+
+        private void txtRegEx_TextChanged(object sender, EventArgs e)
+        {
+        }
+
+        private void txtRegEx2_TextChanged(object sender, EventArgs e)
+        {
+            // 如果使用第二层正则，那么第一层正则不为空，且勾选抓取数据
+            if (txtRegEx2.Text.Trim().Length > 0)
+            {
+                chkGather.Checked = true;
+            }
         }
     }
 }
