@@ -131,6 +131,16 @@ namespace GetWebSiteTool
                 return;
             }
 
+            if (txtRegEx.Text.Trim().Length > 0 || txtRegEx2.Text.Trim().Length > 0)
+            {
+                if (txtMaxCount.Text.Trim().Length <= 0)
+                {
+                    MessageBox.Show("请输入匹配上限值（0表示不限）！");
+                    txtMaxCount.Focus();
+                    return;
+                }
+            }
+
             //URL地址
             string url = txtURL.Text.Trim();
 
@@ -289,7 +299,7 @@ namespace GetWebSiteTool
 
             MatchCollection matches = Regex.Matches(content, pattern, RegexOptions.IgnoreCase);
 
-            int curCount = 0, maxCount = 0;
+            int curCount = 0, maxCount = int.Parse(txtMaxCount.Text);
             foreach (Match match in matches)
             {
                 string getUrl = "", localFile = "";
@@ -307,7 +317,7 @@ namespace GetWebSiteTool
 
                 if (maxCount > 0 && curCount > maxCount)
                 {
-                    ShowStatus("超出嵌套上限（" + maxCount + "），预计舍弃数量（" + (matches.Count - maxCount) + "）\r\n");
+                    ShowStatus("超出匹配上限（" + maxCount + "），预计舍弃数量（" + (matches.Count - maxCount) + "）\r\n");
                     break;
                 }
 
@@ -514,10 +524,16 @@ namespace GetWebSiteTool
                 txtFolder.Focus();
                 return;
             }
+            if (txtDestDir.Text.Trim() == "")
+            {
+                MessageBox.Show("请输入目标子目录！");
+                txtDestDir.Focus();
+                return;
+            }
 
             ShowStatus("操作开始.." + "\r\n");
             localPath = txtFolder.Text.Trim().TrimEnd('\\') + "\\";
-            string newPath = localPath + "backup\\";
+            string newPath = localPath + txtDestDir.Text.Trim();
             ShowStatus("原始目录：" + localPath + "\r\n");
             ShowStatus("目标目录：" + newPath + "\r\n");
             ShowStatus("目标文件清单如下：" + "\r\n");

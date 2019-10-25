@@ -58,11 +58,15 @@
             this.chkGather2 = new System.Windows.Forms.CheckBox();
             this.chkGather = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.txtFileExt = new System.Windows.Forms.TextBox();
-            this.lbFileExt = new System.Windows.Forms.Label();
             this.chkRealExecute = new System.Windows.Forms.CheckBox();
+            this.txtDestDir = new System.Windows.Forms.TextBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkOverWrite = new System.Windows.Forms.CheckBox();
+            this.lblDestDir = new System.Windows.Forms.Label();
+            this.lbFileExt = new System.Windows.Forms.Label();
+            this.txtMaxCount = new System.Windows.Forms.TextBox();
+            this.lblMaxCount = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -96,9 +100,9 @@
             // 
             this.btnGet.Location = new System.Drawing.Point(508, 147);
             this.btnGet.Name = "btnGet";
-            this.btnGet.Size = new System.Drawing.Size(75, 48);
+            this.btnGet.Size = new System.Drawing.Size(75, 31);
             this.btnGet.TabIndex = 3;
-            this.btnGet.Text = "分 析";
+            this.btnGet.Text = "执 行";
             this.btnGet.UseVisualStyleBackColor = true;
             this.btnGet.Click += new System.EventHandler(this.btnGet_Click);
             // 
@@ -113,9 +117,9 @@
             // 
             // txtClear
             // 
-            this.txtClear.Location = new System.Drawing.Point(508, 204);
+            this.txtClear.Location = new System.Drawing.Point(508, 184);
             this.txtClear.Name = "txtClear";
-            this.txtClear.Size = new System.Drawing.Size(75, 48);
+            this.txtClear.Size = new System.Drawing.Size(75, 29);
             this.txtClear.TabIndex = 5;
             this.txtClear.Text = "清 空";
             this.txtClear.UseVisualStyleBackColor = true;
@@ -155,7 +159,7 @@
             // 
             // txtLen
             // 
-            this.txtLen.Location = new System.Drawing.Point(554, 14);
+            this.txtLen.Location = new System.Drawing.Point(554, 10);
             this.txtLen.Name = "txtLen";
             this.txtLen.Size = new System.Drawing.Size(24, 21);
             this.txtLen.TabIndex = 12;
@@ -173,7 +177,7 @@
             // lbLen
             // 
             this.lbLen.AutoSize = true;
-            this.lbLen.Location = new System.Drawing.Point(488, 20);
+            this.lbLen.Location = new System.Drawing.Point(488, 16);
             this.lbLen.Name = "lbLen";
             this.lbLen.Size = new System.Drawing.Size(65, 12);
             this.lbLen.TabIndex = 14;
@@ -215,7 +219,7 @@
             // 
             // btnCopy
             // 
-            this.btnCopy.Location = new System.Drawing.Point(5, 100);
+            this.btnCopy.Location = new System.Drawing.Point(5, 141);
             this.btnCopy.Name = "btnCopy";
             this.btnCopy.Size = new System.Drawing.Size(75, 32);
             this.btnCopy.TabIndex = 20;
@@ -261,7 +265,7 @@
             // lblThreadNum
             // 
             this.lblThreadNum.AutoSize = true;
-            this.lblThreadNum.Location = new System.Drawing.Point(500, 44);
+            this.lblThreadNum.Location = new System.Drawing.Point(500, 40);
             this.lblThreadNum.Name = "lblThreadNum";
             this.lblThreadNum.Size = new System.Drawing.Size(53, 12);
             this.lblThreadNum.TabIndex = 14;
@@ -269,7 +273,7 @@
             // 
             // txtThreadNum
             // 
-            this.txtThreadNum.Location = new System.Drawing.Point(554, 41);
+            this.txtThreadNum.Location = new System.Drawing.Point(554, 37);
             this.txtThreadNum.Name = "txtThreadNum";
             this.txtThreadNum.Size = new System.Drawing.Size(24, 21);
             this.txtThreadNum.TabIndex = 12;
@@ -299,19 +303,6 @@
             this.chkGather.UseVisualStyleBackColor = true;
             this.chkGather.CheckedChanged += new System.EventHandler(this.chkGather_CheckedChanged);
             // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.chkOverWrite);
-            this.groupBox1.Controls.Add(this.chkRealExecute);
-            this.groupBox1.Controls.Add(this.lbFileExt);
-            this.groupBox1.Controls.Add(this.txtFileExt);
-            this.groupBox1.Controls.Add(this.btnCopy);
-            this.groupBox1.Location = new System.Drawing.Point(502, 258);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(92, 138);
-            this.groupBox1.TabIndex = 24;
-            this.groupBox1.TabStop = false;
-            // 
             // txtFileExt
             // 
             this.txtFileExt.Location = new System.Drawing.Point(3, 35);
@@ -320,6 +311,60 @@
             this.txtFileExt.TabIndex = 21;
             this.txtFileExt.Text = "*.jpg|*.bmp";
             this.toolTip1.SetToolTip(this.txtFileExt, "多个文件后缀名用｜线隔开");
+            // 
+            // chkRealExecute
+            // 
+            this.chkRealExecute.AutoSize = true;
+            this.chkRealExecute.Location = new System.Drawing.Point(9, 123);
+            this.chkRealExecute.Name = "chkRealExecute";
+            this.chkRealExecute.Size = new System.Drawing.Size(72, 16);
+            this.chkRealExecute.TabIndex = 23;
+            this.chkRealExecute.Text = "真实操作";
+            this.toolTip1.SetToolTip(this.chkRealExecute, "不勾选则模拟输出操作结果");
+            this.chkRealExecute.UseVisualStyleBackColor = true;
+            // 
+            // txtDestDir
+            // 
+            this.txtDestDir.Location = new System.Drawing.Point(3, 78);
+            this.txtDestDir.Name = "txtDestDir";
+            this.txtDestDir.Size = new System.Drawing.Size(86, 21);
+            this.txtDestDir.TabIndex = 21;
+            this.txtDestDir.Text = "backup\\";
+            this.toolTip1.SetToolTip(this.txtDestDir, "“保存目录”作为源目录，此框是其子目录，作为拷贝目标文件夹");
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.chkOverWrite);
+            this.groupBox1.Controls.Add(this.chkRealExecute);
+            this.groupBox1.Controls.Add(this.lblDestDir);
+            this.groupBox1.Controls.Add(this.lbFileExt);
+            this.groupBox1.Controls.Add(this.txtDestDir);
+            this.groupBox1.Controls.Add(this.txtFileExt);
+            this.groupBox1.Controls.Add(this.btnCopy);
+            this.groupBox1.Location = new System.Drawing.Point(502, 219);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(92, 177);
+            this.groupBox1.TabIndex = 24;
+            this.groupBox1.TabStop = false;
+            // 
+            // chkOverWrite
+            // 
+            this.chkOverWrite.AutoSize = true;
+            this.chkOverWrite.Location = new System.Drawing.Point(9, 101);
+            this.chkOverWrite.Name = "chkOverWrite";
+            this.chkOverWrite.Size = new System.Drawing.Size(72, 16);
+            this.chkOverWrite.TabIndex = 23;
+            this.chkOverWrite.Text = "重名覆盖";
+            this.chkOverWrite.UseVisualStyleBackColor = true;
+            // 
+            // lblDestDir
+            // 
+            this.lblDestDir.AutoSize = true;
+            this.lblDestDir.Location = new System.Drawing.Point(3, 60);
+            this.lblDestDir.Name = "lblDestDir";
+            this.lblDestDir.Size = new System.Drawing.Size(77, 12);
+            this.lblDestDir.TabIndex = 22;
+            this.lblDestDir.Text = "目标子目录：";
             // 
             // lbFileExt
             // 
@@ -330,26 +375,23 @@
             this.lbFileExt.TabIndex = 22;
             this.lbFileExt.Text = "过滤文件：";
             // 
-            // chkRealExecute
+            // txtMaxCount
             // 
-            this.chkRealExecute.AutoSize = true;
-            this.chkRealExecute.Location = new System.Drawing.Point(9, 82);
-            this.chkRealExecute.Name = "chkRealExecute";
-            this.chkRealExecute.Size = new System.Drawing.Size(72, 16);
-            this.chkRealExecute.TabIndex = 23;
-            this.chkRealExecute.Text = "真实操作";
-            this.toolTip1.SetToolTip(this.chkRealExecute, "不勾选则模拟输出操作结果");
-            this.chkRealExecute.UseVisualStyleBackColor = true;
+            this.txtMaxCount.Location = new System.Drawing.Point(554, 59);
+            this.txtMaxCount.Name = "txtMaxCount";
+            this.txtMaxCount.Size = new System.Drawing.Size(37, 21);
+            this.txtMaxCount.TabIndex = 12;
+            this.txtMaxCount.Text = "0";
+            this.toolTip1.SetToolTip(this.txtMaxCount, "每层嵌套匹配数量上限值（0表示不限），防止横向过度耗时");
             // 
-            // chkOverWrite
+            // lblMaxCount
             // 
-            this.chkOverWrite.AutoSize = true;
-            this.chkOverWrite.Location = new System.Drawing.Point(9, 60);
-            this.chkOverWrite.Name = "chkOverWrite";
-            this.chkOverWrite.Size = new System.Drawing.Size(72, 16);
-            this.chkOverWrite.TabIndex = 23;
-            this.chkOverWrite.Text = "重名覆盖";
-            this.chkOverWrite.UseVisualStyleBackColor = true;
+            this.lblMaxCount.AutoSize = true;
+            this.lblMaxCount.Location = new System.Drawing.Point(488, 62);
+            this.lblMaxCount.Name = "lblMaxCount";
+            this.lblMaxCount.Size = new System.Drawing.Size(65, 12);
+            this.lblMaxCount.TabIndex = 14;
+            this.lblMaxCount.Text = "匹配上限：";
             // 
             // Form1
             // 
@@ -363,10 +405,12 @@
             this.Controls.Add(this.lbRegEx2);
             this.Controls.Add(this.txtRegEx);
             this.Controls.Add(this.lbRegEx);
+            this.Controls.Add(this.lblMaxCount);
             this.Controls.Add(this.lblThreadNum);
             this.Controls.Add(this.lbLen);
             this.Controls.Add(this.lbTo);
             this.Controls.Add(this.txtGrp2);
+            this.Controls.Add(this.txtMaxCount);
             this.Controls.Add(this.txtGrp1);
             this.Controls.Add(this.txtThreadNum);
             this.Controls.Add(this.txtLen);
@@ -427,6 +471,10 @@
         private System.Windows.Forms.Label lbFileExt;
         private System.Windows.Forms.TextBox txtFileExt;
         private System.Windows.Forms.CheckBox chkOverWrite;
+        private System.Windows.Forms.Label lblDestDir;
+        private System.Windows.Forms.TextBox txtDestDir;
+        private System.Windows.Forms.TextBox txtMaxCount;
+        private System.Windows.Forms.Label lblMaxCount;
     }
 }
 
