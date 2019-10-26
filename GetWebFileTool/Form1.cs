@@ -723,7 +723,7 @@ namespace GetWebSiteTool
                 try
                 {
                     //读取配置文件
-                    ReadConfig(cur_config_file);
+                    ReadConfig(openFileDlg.FileName);
                     cur_config_file = openFileDlg.FileName;
                     toolTip1.SetToolTip(lnkLabel, cur_config_file);
                     lnkLabel.LinkColor = Color.Red; // 标记红色表示修改过
