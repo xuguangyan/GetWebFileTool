@@ -7,3 +7,9 @@ $RECYCLE.BIN/
 obj/
 *.suo
 *.pdb
+*.manifest
+/GetWebFileTool/bin/Debug/*.txt
+/GetWebFileTool/bin/Debug/GetWebFileTool.vshost.exe
+/GetWebFileTool/bin/Debug/GetWebFileTool.vshost.exe.manifest
+/GetWebFileTool/bin/Debug/Config.ini
+/GetWebFileTool/bin/Debug/GetWebFileTool.pdb
