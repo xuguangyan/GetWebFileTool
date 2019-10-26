@@ -29,11 +29,30 @@ namespace GetWebSiteTool
         static Object locker = new Object(); //线程锁
         static DateTime startTime;
 
+        SaveWebFileDelegate SaveWebFileMethod = null;
+
+        /// <summary>
+        /// 配置文件命名
+        /// </summary>
+        private const string CONFIG_FILE = "Config.ini";
+        /// <summary>
+        /// 配置结点名
+        /// </summary>
+        private const string INI_SESSION = "DS_GetWebFileTool";
+
         public Form1()
         {
             InitializeComponent();
 
-            txtFolder.Text = AppDomain.CurrentDomain.BaseDirectory + "download\\";
+            //读取配置文件
+            ReadConfig();
+
+            if (txtFolder.Text.Trim().Length <= 0)
+            {
+                txtFolder.Text = AppDomain.CurrentDomain.BaseDirectory + "download\\";
+            }
+
+            SaveWebFileMethod = new SaveWebFileDelegate(SaveWebFile);
         }
 
         //保存目录
@@ -158,6 +177,7 @@ namespace GetWebSiteTool
             startTime = DateTime.Now;
             ShowStatus("开始任务...\r\n");
             string strGather = chkGather.Checked ? "true" : "false";
+            int level = 1; //迭代层级
 
             if (url.IndexOf("(*)") > 0)
             {
@@ -200,7 +220,7 @@ namespace GetWebSiteTool
                     string savePath = localPath + filename;
 
                     ShowStatus("下载线程" + threadNo + "：" + filename + "\r\n");
-                    SaveWebFileMethod.BeginInvoke(url2, savePath, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, (threadNo++).ToString() });
+                    SaveWebFileMethod.BeginInvoke(url2, savePath, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, (threadNo++).ToString(), level.ToString() });
                 }
             }
             else
@@ -209,7 +229,7 @@ namespace GetWebSiteTool
                 string savePath = localPath + filename;
 
                 ShowStatus("下载线程" + threadNo + "：" + filename + "\r\n");
-                SaveWebFileMethod.BeginInvoke(url, savePath, new AsyncCallback(DownFinished), new string[] { url, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString() });
+                SaveWebFileMethod.BeginInvoke(url, savePath, new AsyncCallback(DownFinished), new string[] { url, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString(), level.ToString() });
             }
         }
 
@@ -232,54 +252,66 @@ namespace GetWebSiteTool
             int grpId = int.Parse(strArry[2]); //匹配组序号
             bool isGather = bool.Parse(strArry[3]); //是否抓取文件中数据
             int threadNo = int.Parse(strArry[4]); //线程序号
+            int level = int.Parse(strArry[5]); //迭代层级
 
             //string url = result.AsyncState.ToString();
             //string regEx = txtRegEx.Text.Trim();
             string filename = getURLPart(url, 2).Replace('/', '\\');
 
-            lock (locker)
+            if (level == 1)
             {
-                taskDone++;
-                ShowStatus("完成线程" + threadNo + "：" + filename + " (" + status + ")\r\n");
-                ShowStatus("任务进度：" + taskDone + "/" + taskTotal + "\r\n");
+                lock (locker)
+                {
+                    taskDone++;
+                    ShowStatus("完成线程" + threadNo + "：" + filename + " (" + status + ")\r\n");
+                    ShowStatus("任务进度：" + taskDone + "/" + taskTotal + "\r\n");
+                }
+            }
+            else
+            {
+                ShowStatus("完成下载：" + filename + " (" + status + ")\r\n");
             }
 
             string extFile = getURLPart(filename, 3);
             // bool isTextFile = ("txt|xml|htm|html|shtml|asp|aspx|php|jsp|js|css".IndexOf(extFile) >= 0);
 
-            //获取文件(通过regEx分析)
-            if (regEx != "" && (code == DOWNFILE_SUCCESS || code == DOWNFILE_EXISTS)/* && isTextFile*/)
+            //获取文件(通过regEx分析)，最多只分析到level=2层
+            if (regEx != "" && (code == DOWNFILE_SUCCESS || code == DOWNFILE_EXISTS) && level < 3 /* && isTextFile*/)
             {
                 string savePath = localPath + filename;
                 StreamReader sr = File.OpenText(savePath);
                 string strContent = sr.ReadToEnd();
                 sr.Close();
 
-                ShowStatus("开始正则分析：" + filename + " ========\r\n");
+                ShowStatus("开始正则分析：" + filename + " ∧∧∧∧∧\r\n");
                 string urlPath = url.Substring(0, url.LastIndexOf("/") + 1);
-                getFileByRegex(strContent, urlPath, regEx, grpId, isGather, threadNo);
-                ShowStatus("完成正则分析：" + filename + " ========\r\n");
+                getFileByRegex(strContent, urlPath, regEx, grpId, isGather, threadNo, level);
+                ShowStatus("完成正则分析：" + filename + " ∨∨∨∨∨\r\n\r\n");
             }
 
-            lock (locker)
+            // 检查第一层（多线程）执行情况
+            if (level == 1)
             {
-                if (taskDone >= taskTotal)
+                lock (locker)
                 {
-                    double useTime = (DateTime.Now - startTime).TotalMilliseconds;
-                    string strUseTime = getUseTime(Convert.ToInt64(useTime));
-                    ShowStatus("已完成，任务总数：" + taskTotal + "，耗时：" + strUseTime + "\r\n");
+                    if (taskDone >= taskTotal)
+                    {
+                        double useTime = (DateTime.Now - startTime).TotalMilliseconds;
+                        string strUseTime = getUseTime(Convert.ToInt64(useTime));
+                        ShowStatus("已完成，任务总数：" + taskTotal + "，耗时：" + strUseTime + "\r\n");
+                    }
                 }
-            }
 
-            if (urls.Count > 0)
-            {
-                string url2 = urls.Dequeue();
-                string filename2 = getURLPart(url2, 2).Replace('/', '\\');
-                string savePath2 = localPath + filename2;
-                string strGather = chkGather.Checked ? "true" : "false";
+                if (urls.Count > 0)
+                {
+                    string url2 = urls.Dequeue();
+                    string filename2 = getURLPart(url2, 2).Replace('/', '\\');
+                    string savePath2 = localPath + filename2;
+                    string strGather = chkGather.Checked ? "true" : "false";
 
-                ShowStatus("下载线程" + threadNo + "：" + filename2 + "\r\n");
-                SaveWebFileMethod.BeginInvoke(url2, savePath2, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString() });
+                    ShowStatus("下载线程" + threadNo + "：" + filename2 + "\r\n");
+                    SaveWebFileMethod.BeginInvoke(url2, savePath2, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString(), "1" });
+                }
             }
         }
 
@@ -292,13 +324,15 @@ namespace GetWebSiteTool
         /// <param name="grpId">匹配组id</param>
         /// <param name="isGether">是否抓取文件中数据</param>
         /// <param name="threadNo">线程序号</param>
-        private void getFileByRegex(string content, string urlPath, string pattern, int grpId, bool isGether, int threadNo)
+        /// <param name="level">迭代层级</param>
+        private void getFileByRegex(string content, string urlPath, string pattern, int grpId, bool isGether, int threadNo, int level)
         {
             string filePath = getURLPart(urlPath + "test.htm", 2).Replace('/', '\\');
             filePath = filePath.Substring(0, filePath.LastIndexOf("\\") + 1);
 
             MatchCollection matches = Regex.Matches(content, pattern, RegexOptions.IgnoreCase);
 
+            level++; //加深一层
             int curCount = 0, maxCount = int.Parse(txtMaxCount.Text);
             foreach (Match match in matches)
             {
@@ -351,21 +385,26 @@ namespace GetWebSiteTool
                 string strGather = chkGather2.Checked ? "true" : "false";
 
                 ShowStatus("下载文件：" + file1 + "\r\n");
-                // IAsyncResult result = SaveWebFileMethod.BeginInvoke(getUrl, savePath, new AsyncCallback(DownFinished), new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim(), strGather, threadNo.ToString() });
-                IAsyncResult result = SaveWebFileMethod.BeginInvoke(getUrl, savePath, null, new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim(), strGather, threadNo.ToString() });
-                int rstCode = SaveWebFileMethod.EndInvoke(result);  //阻塞线程，实行单线程下线
-                DownFinished_End(result, rstCode);
+                if (chkMulThread.Checked) // 是否开启多线程
+                {
+                    IAsyncResult result = SaveWebFileMethod.BeginInvoke(getUrl, savePath, new AsyncCallback(DownFinished), new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim(), strGather, threadNo.ToString(), level.ToString() });
+                }
+                else
+                {
+                    IAsyncResult result = SaveWebFileMethod.BeginInvoke(getUrl, savePath, null, new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim(), strGather, threadNo.ToString(), level.ToString() });
+                    int rstCode = SaveWebFileMethod.EndInvoke(result);  //阻塞线程，实行单线程下线
+                    DownFinished_End(result, rstCode);
+                }
             }
         }
 
         delegate int SaveWebFileDelegate(string url, string SavePath);
-        SaveWebFileDelegate SaveWebFileMethod = new SaveWebFileDelegate(SaveWebFile);
         /// <summary>        
         /// 保存远程文件
         /// </summary>        
         /// <param name="url"></param>        
         /// <param name="SavePath"></param>        
-        private static int SaveWebFile(string url, string SavePath)
+        private int SaveWebFile(string url, string SavePath)
         {
             if (File.Exists(SavePath))
             {
@@ -378,6 +417,9 @@ namespace GetWebSiteTool
             try
             {
                 buffer = wc.DownloadData(url);
+                // wc.DownloadFileCompleted += downloadFileCompleted;
+                // wc.DownloadProgressChanged += downloadProgressChanged;
+                // wc.DownloadDataAsync(new Uri(url), SavePath);
             }
             catch
             {
@@ -401,6 +443,27 @@ namespace GetWebSiteTool
 
             //下载成功
             return DOWNFILE_SUCCESS;
+        }
+        /// <summary>
+        /// 下载完成 回调函数
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void downloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            if (e.UserState != null)
+            {
+                ShowStatus("下载文件：" + e.UserState.ToString() + ",下载完成\r\n");
+            }
+        }
+        /// <summary>
+        /// 下载进度 回调函数
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void downloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            ShowStatus("下载文件：" + e.UserState.ToString() + "," + e.ProgressPercentage + "%\r\n");
         }
 
         /// <summary>
@@ -628,5 +691,76 @@ namespace GetWebSiteTool
                 chkGather.Checked = true;
             }
         }
+
+        // 窗口关闭
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            //写入配置文件
+            WriteConfig();
+        }
+
+        #region 读写配置文件操作
+
+        /// <summary>
+        /// 写入配置文件
+        /// </summary>
+        private void WriteConfig()
+        {
+            string path = AppDomain.CurrentDomain.BaseDirectory;
+            string strIniFile = path + CONFIG_FILE;
+            IniFiles ini = new IniFiles(strIniFile);
+
+            ini.WriteString(INI_SESSION, "txtURL", txtURL.Text);
+            ini.WriteString(INI_SESSION, "txtFolder", txtFolder.Text);
+            ini.WriteString(INI_SESSION, "txtRegEx", txtRegEx.Text);
+            ini.WriteString(INI_SESSION, "txtRegEx2", txtRegEx2.Text);
+            ini.WriteString(INI_SESSION, "txtNum1", txtNum1.Text);
+            ini.WriteString(INI_SESSION, "txtNum2", txtNum2.Text);
+            ini.WriteString(INI_SESSION, "txtGrp1", txtGrp1.Text);
+            ini.WriteString(INI_SESSION, "txtGrp2", txtGrp2.Text);
+            ini.WriteString(INI_SESSION, "txtLen", txtLen.Text);
+            ini.WriteString(INI_SESSION, "txtThreadNum", txtThreadNum.Text);
+            ini.WriteString(INI_SESSION, "txtMaxCount", txtMaxCount.Text);
+            ini.WriteString(INI_SESSION, "txtFileExt", txtFileExt.Text);
+            ini.WriteString(INI_SESSION, "txtDestDir", txtDestDir.Text);
+
+            ini.WriteBool(INI_SESSION, "chkGather", chkGather.Checked);
+            ini.WriteBool(INI_SESSION, "chkGather2", chkGather2.Checked);
+            ini.WriteBool(INI_SESSION, "chkOverWrite", chkOverWrite.Checked);
+            ini.WriteBool(INI_SESSION, "chkRealExecute", chkRealExecute.Checked);
+            ini.WriteBool(INI_SESSION, "chkMulThread", chkMulThread.Checked);
+        }
+
+        /// <summary>
+        /// 读取配置文件
+        /// </summary>
+        private void ReadConfig()
+        {
+            string path = AppDomain.CurrentDomain.BaseDirectory;
+            string strIniFile = path + CONFIG_FILE;
+            IniFiles ini = new IniFiles(strIniFile);
+
+            txtURL.Text = ini.ReadString(INI_SESSION, "txtURL", "");
+            txtFolder.Text = ini.ReadString(INI_SESSION, "txtFolder", "");
+            txtRegEx.Text = ini.ReadString(INI_SESSION, "txtRegEx", "");
+            txtRegEx2.Text = ini.ReadString(INI_SESSION, "txtRegEx2", "");
+            txtNum1.Text = ini.ReadString(INI_SESSION, "txtNum1", "0");
+            txtNum2.Text = ini.ReadString(INI_SESSION, "txtNum2", "0");
+            txtGrp1.Text = ini.ReadString(INI_SESSION, "txtGrp1", "0");
+            txtGrp2.Text = ini.ReadString(INI_SESSION, "txtGrp2", "0");
+            txtLen.Text = ini.ReadString(INI_SESSION, "txtLen", "1");
+            txtThreadNum.Text = ini.ReadString(INI_SESSION, "txtThreadNum", "1");
+            txtMaxCount.Text = ini.ReadString(INI_SESSION, "txtMaxCount", "0");
+            txtFileExt.Text = ini.ReadString(INI_SESSION, "txtFileExt", "*.jpg|*.bmp");
+            txtDestDir.Text = ini.ReadString(INI_SESSION, "txtDestDir", "backup\\");
+
+            chkGather.Checked = ini.ReadBool(INI_SESSION, "chkGather", false);
+            chkGather2.Checked = ini.ReadBool(INI_SESSION, "chkGather2", false);
+            chkOverWrite.Checked = ini.ReadBool(INI_SESSION, "chkOverWrite", false);
+            chkRealExecute.Checked = ini.ReadBool(INI_SESSION, "chkRealExecute", false);
+            chkMulThread.Checked = ini.ReadBool(INI_SESSION, "chkMulThread", false);
+        }
+
+        #endregion
     }
 }

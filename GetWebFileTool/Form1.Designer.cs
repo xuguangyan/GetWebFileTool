@@ -61,12 +61,13 @@
             this.txtFileExt = new System.Windows.Forms.TextBox();
             this.chkRealExecute = new System.Windows.Forms.CheckBox();
             this.txtDestDir = new System.Windows.Forms.TextBox();
+            this.txtMaxCount = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkOverWrite = new System.Windows.Forms.CheckBox();
             this.lblDestDir = new System.Windows.Forms.Label();
             this.lbFileExt = new System.Windows.Forms.Label();
-            this.txtMaxCount = new System.Windows.Forms.TextBox();
             this.lblMaxCount = new System.Windows.Forms.Label();
+            this.chkMulThread = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -98,7 +99,7 @@
             // 
             // btnGet
             // 
-            this.btnGet.Location = new System.Drawing.Point(508, 147);
+            this.btnGet.Location = new System.Drawing.Point(508, 154);
             this.btnGet.Name = "btnGet";
             this.btnGet.Size = new System.Drawing.Size(75, 31);
             this.btnGet.TabIndex = 3;
@@ -114,10 +115,11 @@
             this.txtStatus.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.txtStatus.Size = new System.Drawing.Size(488, 249);
             this.txtStatus.TabIndex = 4;
+            this.txtStatus.WordWrap = false;
             // 
             // txtClear
             // 
-            this.txtClear.Location = new System.Drawing.Point(508, 184);
+            this.txtClear.Location = new System.Drawing.Point(508, 191);
             this.txtClear.Name = "txtClear";
             this.txtClear.Size = new System.Drawing.Size(75, 29);
             this.txtClear.TabIndex = 5;
@@ -332,6 +334,15 @@
             this.txtDestDir.Text = "backup\\";
             this.toolTip1.SetToolTip(this.txtDestDir, "“保存目录”作为源目录，此框是其子目录，作为拷贝目标文件夹");
             // 
+            // txtMaxCount
+            // 
+            this.txtMaxCount.Location = new System.Drawing.Point(554, 59);
+            this.txtMaxCount.Name = "txtMaxCount";
+            this.txtMaxCount.Size = new System.Drawing.Size(37, 21);
+            this.txtMaxCount.TabIndex = 12;
+            this.txtMaxCount.Text = "0";
+            this.toolTip1.SetToolTip(this.txtMaxCount, "每层嵌套匹配数量上限值（0表示不限），防止横向过度耗时");
+            // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.chkOverWrite);
@@ -375,15 +386,6 @@
             this.lbFileExt.TabIndex = 22;
             this.lbFileExt.Text = "过滤文件：";
             // 
-            // txtMaxCount
-            // 
-            this.txtMaxCount.Location = new System.Drawing.Point(554, 59);
-            this.txtMaxCount.Name = "txtMaxCount";
-            this.txtMaxCount.Size = new System.Drawing.Size(37, 21);
-            this.txtMaxCount.TabIndex = 12;
-            this.txtMaxCount.Text = "0";
-            this.toolTip1.SetToolTip(this.txtMaxCount, "每层嵌套匹配数量上限值（0表示不限），防止横向过度耗时");
-            // 
             // lblMaxCount
             // 
             this.lblMaxCount.AutoSize = true;
@@ -393,6 +395,19 @@
             this.lblMaxCount.TabIndex = 14;
             this.lblMaxCount.Text = "匹配上限：";
             // 
+            // chkMulThread
+            // 
+            this.chkMulThread.AutoSize = true;
+            this.chkMulThread.Location = new System.Drawing.Point(507, 132);
+            this.chkMulThread.Name = "chkMulThread";
+            this.chkMulThread.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkMulThread.Size = new System.Drawing.Size(84, 16);
+            this.chkMulThread.TabIndex = 23;
+            this.chkMulThread.Text = "正则多线程";
+            this.toolTip1.SetToolTip(this.chkMulThread, "即根据正则匹配数开启等量线程（性能开销大，请求易中断）");
+            this.chkMulThread.UseVisualStyleBackColor = true;
+            this.chkMulThread.CheckedChanged += new System.EventHandler(this.chkGather_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -400,6 +415,7 @@
             this.ClientSize = new System.Drawing.Size(595, 413);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.chkGather2);
+            this.Controls.Add(this.chkMulThread);
             this.Controls.Add(this.chkGather);
             this.Controls.Add(this.txtRegEx2);
             this.Controls.Add(this.lbRegEx2);
@@ -428,6 +444,7 @@
             this.Controls.Add(this.lbFile);
             this.Name = "Form1";
             this.Text = "网站抓取工具（大圣）";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -475,6 +492,7 @@
         private System.Windows.Forms.TextBox txtDestDir;
         private System.Windows.Forms.TextBox txtMaxCount;
         private System.Windows.Forms.Label lblMaxCount;
+        private System.Windows.Forms.CheckBox chkMulThread;
     }
 }
 
