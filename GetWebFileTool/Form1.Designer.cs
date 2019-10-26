@@ -62,13 +62,16 @@
             this.chkRealExecute = new System.Windows.Forms.CheckBox();
             this.txtDestDir = new System.Windows.Forms.TextBox();
             this.txtMaxCount = new System.Windows.Forms.TextBox();
+            this.chkMulThread = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkOverWrite = new System.Windows.Forms.CheckBox();
             this.lblDestDir = new System.Windows.Forms.Label();
             this.lbFileExt = new System.Windows.Forms.Label();
             this.lblMaxCount = new System.Windows.Forms.Label();
-            this.chkMulThread = new System.Windows.Forms.CheckBox();
+            this.picBoxCfg = new System.Windows.Forms.PictureBox();
+            this.lnkLabel = new System.Windows.Forms.LinkLabel();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picBoxCfg)).BeginInit();
             this.SuspendLayout();
             // 
             // lbFile
@@ -343,6 +346,19 @@
             this.txtMaxCount.Text = "0";
             this.toolTip1.SetToolTip(this.txtMaxCount, "每层嵌套匹配数量上限值（0表示不限），防止横向过度耗时");
             // 
+            // chkMulThread
+            // 
+            this.chkMulThread.AutoSize = true;
+            this.chkMulThread.Location = new System.Drawing.Point(507, 132);
+            this.chkMulThread.Name = "chkMulThread";
+            this.chkMulThread.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkMulThread.Size = new System.Drawing.Size(84, 16);
+            this.chkMulThread.TabIndex = 23;
+            this.chkMulThread.Text = "正则多线程";
+            this.toolTip1.SetToolTip(this.chkMulThread, "即根据正则匹配数开启等量线程（性能开销大，请求易中断）");
+            this.chkMulThread.UseVisualStyleBackColor = true;
+            this.chkMulThread.CheckedChanged += new System.EventHandler(this.chkGather_CheckedChanged);
+            // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.chkOverWrite);
@@ -395,24 +411,36 @@
             this.lblMaxCount.TabIndex = 14;
             this.lblMaxCount.Text = "匹配上限：";
             // 
-            // chkMulThread
+            // picBoxCfg
             // 
-            this.chkMulThread.AutoSize = true;
-            this.chkMulThread.Location = new System.Drawing.Point(507, 132);
-            this.chkMulThread.Name = "chkMulThread";
-            this.chkMulThread.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkMulThread.Size = new System.Drawing.Size(84, 16);
-            this.chkMulThread.TabIndex = 23;
-            this.chkMulThread.Text = "正则多线程";
-            this.toolTip1.SetToolTip(this.chkMulThread, "即根据正则匹配数开启等量线程（性能开销大，请求易中断）");
-            this.chkMulThread.UseVisualStyleBackColor = true;
-            this.chkMulThread.CheckedChanged += new System.EventHandler(this.chkGather_CheckedChanged);
+            this.picBoxCfg.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picBoxCfg.Image = global::GetWebFileTool.Properties.Resources.gif_57_054;
+            this.picBoxCfg.Location = new System.Drawing.Point(554, 85);
+            this.picBoxCfg.Name = "picBoxCfg";
+            this.picBoxCfg.Size = new System.Drawing.Size(37, 28);
+            this.picBoxCfg.TabIndex = 25;
+            this.picBoxCfg.TabStop = false;
+            this.toolTip1.SetToolTip(this.picBoxCfg, "载入配置文件");
+            this.picBoxCfg.Click += new System.EventHandler(this.picBoxCfg_Click);
+            // 
+            // lnkLabel
+            // 
+            this.lnkLabel.AutoSize = true;
+            this.lnkLabel.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.lnkLabel.Location = new System.Drawing.Point(562, 112);
+            this.lnkLabel.Name = "lnkLabel";
+            this.lnkLabel.Size = new System.Drawing.Size(35, 12);
+            this.lnkLabel.TabIndex = 26;
+            this.lnkLabel.TabStop = true;
+            this.lnkLabel.Text = "*.ini";
+            this.lnkLabel.Click += new System.EventHandler(this.lnkLabel_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(595, 413);
+            this.Controls.Add(this.lnkLabel);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.chkGather2);
             this.Controls.Add(this.chkMulThread);
@@ -442,11 +470,13 @@
             this.Controls.Add(this.btnOpen);
             this.Controls.Add(this.txtFolder);
             this.Controls.Add(this.lbFile);
+            this.Controls.Add(this.picBoxCfg);
             this.Name = "Form1";
             this.Text = "网站抓取工具（大圣）";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picBoxCfg)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -493,6 +523,8 @@
         private System.Windows.Forms.TextBox txtMaxCount;
         private System.Windows.Forms.Label lblMaxCount;
         private System.Windows.Forms.CheckBox chkMulThread;
+        private System.Windows.Forms.PictureBox picBoxCfg;
+        private System.Windows.Forms.LinkLabel lnkLabel;
     }
 }
 

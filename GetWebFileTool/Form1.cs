@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.Collections;
 using System.Threading;
+using System.Diagnostics;
 
 namespace GetWebSiteTool
 {
@@ -28,6 +29,7 @@ namespace GetWebSiteTool
         static Queue<String> urls = new Queue<String>(); // 任务队列(url)
         static Object locker = new Object(); //线程锁
         static DateTime startTime;
+        static string cur_config_file = ""; // 当前使用配置文件
 
         SaveWebFileDelegate SaveWebFileMethod = null;
 
@@ -44,8 +46,11 @@ namespace GetWebSiteTool
         {
             InitializeComponent();
 
+            cur_config_file = AppDomain.CurrentDomain.BaseDirectory + CONFIG_FILE;
+            toolTip1.SetToolTip(lnkLabel, cur_config_file);
+
             //读取配置文件
-            ReadConfig();
+            ReadConfig(cur_config_file);
 
             if (txtFolder.Text.Trim().Length <= 0)
             {
@@ -692,11 +697,52 @@ namespace GetWebSiteTool
             }
         }
 
-        // 窗口关闭
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        // 窗口关闭前
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //写入配置文件
-            WriteConfig();
+            DialogResult dlgRst = MessageBox.Show("是否保存当前修改过的配置？", "温馨提示", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+            if (dlgRst == DialogResult.Yes)
+            {
+                //写入配置文件
+                WriteConfig(cur_config_file);
+            }
+            else if (dlgRst == DialogResult.Cancel)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        // 载入配置文件
+        private void picBoxCfg_Click(object sender, EventArgs e)
+        {
+            openFileDlg.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            openFileDlg.Filter = "配置文件|*.ini|所有文件|*.*";
+            DialogResult dlgRst = openFileDlg.ShowDialog();
+            if (dlgRst == DialogResult.OK)
+            {
+                try
+                {
+                    //读取配置文件
+                    ReadConfig(cur_config_file);
+                    cur_config_file = openFileDlg.FileName;
+                    toolTip1.SetToolTip(lnkLabel, cur_config_file);
+                    lnkLabel.LinkColor = Color.Red; // 标记红色表示修改过
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("读取配置文件失败！");
+                }
+            }
+        }
+
+        // 点击配置文件链接
+        private void lnkLabel_Click(object sender, EventArgs e)
+        {
+            Process p = new Process();
+            p.StartInfo.FileName = "explorer.exe";
+            p.StartInfo.Arguments = @" /select, " + cur_config_file; //选定文件
+            // p.StartInfo.Arguments = @" " + cur_config_file; //直接打开文件
+            p.Start();
         }
 
         #region 读写配置文件操作
@@ -704,11 +750,13 @@ namespace GetWebSiteTool
         /// <summary>
         /// 写入配置文件
         /// </summary>
-        private void WriteConfig()
+        private void WriteConfig(string iniFile = "")
         {
-            string path = AppDomain.CurrentDomain.BaseDirectory;
-            string strIniFile = path + CONFIG_FILE;
-            IniFiles ini = new IniFiles(strIniFile);
+            if (iniFile == "")
+            {
+                iniFile = AppDomain.CurrentDomain.BaseDirectory + CONFIG_FILE;
+            }
+            IniFiles ini = new IniFiles(iniFile);
 
             ini.WriteString(INI_SESSION, "txtURL", txtURL.Text);
             ini.WriteString(INI_SESSION, "txtFolder", txtFolder.Text);
@@ -734,11 +782,13 @@ namespace GetWebSiteTool
         /// <summary>
         /// 读取配置文件
         /// </summary>
-        private void ReadConfig()
+        private void ReadConfig(string iniFile = "")
         {
-            string path = AppDomain.CurrentDomain.BaseDirectory;
-            string strIniFile = path + CONFIG_FILE;
-            IniFiles ini = new IniFiles(strIniFile);
+            if (iniFile == "")
+            {
+                iniFile = AppDomain.CurrentDomain.BaseDirectory + CONFIG_FILE;
+            }
+            IniFiles ini = new IniFiles(iniFile);
 
             txtURL.Text = ini.ReadString(INI_SESSION, "txtURL", "");
             txtFolder.Text = ini.ReadString(INI_SESSION, "txtFolder", "");
