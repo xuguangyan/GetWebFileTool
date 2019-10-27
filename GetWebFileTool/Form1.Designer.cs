@@ -63,15 +63,20 @@
             this.txtDestDir = new System.Windows.Forms.TextBox();
             this.txtMaxCount = new System.Windows.Forms.TextBox();
             this.chkMulThread = new System.Windows.Forms.CheckBox();
+            this.picBoxCfg = new System.Windows.Forms.PictureBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkOverWrite = new System.Windows.Forms.CheckBox();
             this.lblDestDir = new System.Windows.Forms.Label();
             this.lbFileExt = new System.Windows.Forms.Label();
             this.lblMaxCount = new System.Windows.Forms.Label();
-            this.picBoxCfg = new System.Windows.Forms.PictureBox();
             this.lnkLabel = new System.Windows.Forms.LinkLabel();
-            this.groupBox1.SuspendLayout();
+            this.lbKeyword = new System.Windows.Forms.Label();
+            this.txtKeyword = new System.Windows.Forms.TextBox();
+            this.lblMatchCount = new System.Windows.Forms.Label();
+            this.brwStatus = new System.Windows.Forms.WebBrowser();
+            this.lbPlacehold = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picBoxCfg)).BeginInit();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // lbFile
@@ -359,6 +364,18 @@
             this.chkMulThread.UseVisualStyleBackColor = true;
             this.chkMulThread.CheckedChanged += new System.EventHandler(this.chkGather_CheckedChanged);
             // 
+            // picBoxCfg
+            // 
+            this.picBoxCfg.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picBoxCfg.Image = global::GetWebFileTool.Properties.Resources.gif_57_054;
+            this.picBoxCfg.Location = new System.Drawing.Point(554, 85);
+            this.picBoxCfg.Name = "picBoxCfg";
+            this.picBoxCfg.Size = new System.Drawing.Size(37, 28);
+            this.picBoxCfg.TabIndex = 25;
+            this.picBoxCfg.TabStop = false;
+            this.toolTip1.SetToolTip(this.picBoxCfg, "载入配置文件");
+            this.picBoxCfg.Click += new System.EventHandler(this.picBoxCfg_Click);
+            // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.chkOverWrite);
@@ -411,18 +428,6 @@
             this.lblMaxCount.TabIndex = 14;
             this.lblMaxCount.Text = "匹配上限：";
             // 
-            // picBoxCfg
-            // 
-            this.picBoxCfg.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.picBoxCfg.Image = global::GetWebFileTool.Properties.Resources.gif_57_054;
-            this.picBoxCfg.Location = new System.Drawing.Point(554, 85);
-            this.picBoxCfg.Name = "picBoxCfg";
-            this.picBoxCfg.Size = new System.Drawing.Size(37, 28);
-            this.picBoxCfg.TabIndex = 25;
-            this.picBoxCfg.TabStop = false;
-            this.toolTip1.SetToolTip(this.picBoxCfg, "载入配置文件");
-            this.picBoxCfg.Click += new System.EventHandler(this.picBoxCfg_Click);
-            // 
             // lnkLabel
             // 
             this.lnkLabel.AutoSize = true;
@@ -435,17 +440,72 @@
             this.lnkLabel.Text = "*.ini";
             this.lnkLabel.Click += new System.EventHandler(this.lnkLabel_Click);
             // 
+            // lbKeyword
+            // 
+            this.lbKeyword.AutoSize = true;
+            this.lbKeyword.Location = new System.Drawing.Point(12, 406);
+            this.lbKeyword.Name = "lbKeyword";
+            this.lbKeyword.Size = new System.Drawing.Size(65, 12);
+            this.lbKeyword.TabIndex = 17;
+            this.lbKeyword.Text = "搜索文本：";
+            // 
+            // txtKeyword
+            // 
+            this.txtKeyword.Location = new System.Drawing.Point(77, 399);
+            this.txtKeyword.Name = "txtKeyword";
+            this.txtKeyword.Size = new System.Drawing.Size(312, 21);
+            this.txtKeyword.TabIndex = 18;
+            this.txtKeyword.TextChanged += new System.EventHandler(this.txtKeyword_TextChanged);
+            this.txtKeyword.Enter += new System.EventHandler(this.txtKeyword_Enter);
+            this.txtKeyword.Leave += new System.EventHandler(this.txtKeyword_Leave);
+            // 
+            // lblMatchCount
+            // 
+            this.lblMatchCount.AutoSize = true;
+            this.lblMatchCount.Location = new System.Drawing.Point(398, 406);
+            this.lblMatchCount.Name = "lblMatchCount";
+            this.lblMatchCount.Size = new System.Drawing.Size(95, 12);
+            this.lblMatchCount.TabIndex = 17;
+            this.lblMatchCount.Text = "匹配 0 行，0 处";
+            // 
+            // brwStatus
+            // 
+            this.brwStatus.IsWebBrowserContextMenuEnabled = false;
+            this.brwStatus.Location = new System.Drawing.Point(14, 147);
+            this.brwStatus.MinimumSize = new System.Drawing.Size(20, 20);
+            this.brwStatus.Name = "brwStatus";
+            this.brwStatus.Size = new System.Drawing.Size(488, 249);
+            this.brwStatus.TabIndex = 28;
+            // 
+            // lbPlacehold
+            // 
+            this.lbPlacehold.AutoSize = true;
+            this.lbPlacehold.BackColor = System.Drawing.Color.White;
+            this.lbPlacehold.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.lbPlacehold.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.lbPlacehold.Location = new System.Drawing.Point(83, 402);
+            this.lbPlacehold.Name = "lbPlacehold";
+            this.lbPlacehold.Size = new System.Drawing.Size(173, 12);
+            this.lbPlacehold.TabIndex = 29;
+            this.lbPlacehold.Text = "请输入关键字，支持正则表达式";
+            this.lbPlacehold.Click += new System.EventHandler(this.lbPlacehold_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(595, 413);
+            this.ClientSize = new System.Drawing.Size(595, 424);
+            this.Controls.Add(this.lbPlacehold);
+            this.Controls.Add(this.brwStatus);
             this.Controls.Add(this.lnkLabel);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.chkGather2);
             this.Controls.Add(this.chkMulThread);
             this.Controls.Add(this.chkGather);
+            this.Controls.Add(this.txtKeyword);
             this.Controls.Add(this.txtRegEx2);
+            this.Controls.Add(this.lblMatchCount);
+            this.Controls.Add(this.lbKeyword);
             this.Controls.Add(this.lbRegEx2);
             this.Controls.Add(this.txtRegEx);
             this.Controls.Add(this.lbRegEx);
@@ -474,9 +534,9 @@
             this.Name = "Form1";
             this.Text = "网站抓取工具（大圣）";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            ((System.ComponentModel.ISupportInitialize)(this.picBoxCfg)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.picBoxCfg)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -525,6 +585,11 @@
         private System.Windows.Forms.CheckBox chkMulThread;
         private System.Windows.Forms.PictureBox picBoxCfg;
         private System.Windows.Forms.LinkLabel lnkLabel;
+        private System.Windows.Forms.Label lbKeyword;
+        private System.Windows.Forms.TextBox txtKeyword;
+        private System.Windows.Forms.Label lblMatchCount;
+        private System.Windows.Forms.WebBrowser brwStatus;
+        private System.Windows.Forms.Label lbPlacehold;
     }
 }
 

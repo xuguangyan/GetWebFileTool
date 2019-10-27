@@ -12,6 +12,7 @@ using System.Net;
 using System.Collections;
 using System.Threading;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace GetWebSiteTool
 {
@@ -32,6 +33,7 @@ namespace GetWebSiteTool
         static string cur_config_file = ""; // 当前使用配置文件
 
         SaveWebFileDelegate SaveWebFileMethod = null;
+        StringBuilder statusLogBuf = new StringBuilder(); // 状态日志缓存区
 
         /// <summary>
         /// 配置文件命名
@@ -58,6 +60,8 @@ namespace GetWebSiteTool
             }
 
             SaveWebFileMethod = new SaveWebFileDelegate(SaveWebFile);
+
+            brwStatus.DocumentText = "";
         }
 
         //保存目录
@@ -74,7 +78,9 @@ namespace GetWebSiteTool
         //清空日志
         private void txtClear_Click(object sender, EventArgs e)
         {
-            txtStatus.Text = "";
+            statusLogBuf.Length = 0;
+            // txtStatus.Text = "";
+            brwStatus.DocumentText = "";
         }
 
         //分析下载
@@ -180,7 +186,7 @@ namespace GetWebSiteTool
             taskDone = 0;
 
             startTime = DateTime.Now;
-            ShowStatus("开始任务...\r\n");
+            logStatus("开始任务...\r\n");
             string strGather = chkGather.Checked ? "true" : "false";
             int level = 1; //迭代层级
 
@@ -224,7 +230,7 @@ namespace GetWebSiteTool
                     string filename = getURLPart(url2, 2).Replace('/', '\\');
                     string savePath = localPath + filename;
 
-                    ShowStatus("下载线程" + threadNo + "：" + filename + "\r\n");
+                    logStatus("下载线程" + threadNo + "：" + filename + "\r\n");
                     SaveWebFileMethod.BeginInvoke(url2, savePath, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, (threadNo++).ToString(), level.ToString() });
                 }
             }
@@ -233,7 +239,7 @@ namespace GetWebSiteTool
                 string filename = getURLPart(url, 2).Replace('/', '\\');
                 string savePath = localPath + filename;
 
-                ShowStatus("下载线程" + threadNo + "：" + filename + "\r\n");
+                logStatus("下载线程" + threadNo + "：" + filename + "\r\n");
                 SaveWebFileMethod.BeginInvoke(url, savePath, new AsyncCallback(DownFinished), new string[] { url, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString(), level.ToString() });
             }
         }
@@ -268,13 +274,13 @@ namespace GetWebSiteTool
                 lock (locker)
                 {
                     taskDone++;
-                    ShowStatus("完成线程" + threadNo + "：" + filename + " (" + status + ")\r\n");
-                    ShowStatus("任务进度：" + taskDone + "/" + taskTotal + "\r\n");
+                    logStatus("完成线程" + threadNo + "：" + filename + " (" + status + ")\r\n");
+                    logStatus("任务进度：" + taskDone + "/" + taskTotal + "\r\n");
                 }
             }
             else
             {
-                ShowStatus("完成下载：" + filename + " (" + status + ")\r\n");
+                logStatus("完成下载：" + filename + " (" + status + ")\r\n");
             }
 
             string extFile = getURLPart(filename, 3);
@@ -288,10 +294,10 @@ namespace GetWebSiteTool
                 string strContent = sr.ReadToEnd();
                 sr.Close();
 
-                ShowStatus("开始正则分析：" + filename + " ∧∧∧∧∧\r\n");
+                logStatus("开始正则分析：" + filename + " ∧∧∧∧∧\r\n");
                 string urlPath = url.Substring(0, url.LastIndexOf("/") + 1);
                 getFileByRegex(strContent, urlPath, regEx, grpId, isGather, threadNo, level);
-                ShowStatus("完成正则分析：" + filename + " ∨∨∨∨∨\r\n\r\n");
+                logStatus("完成正则分析：" + filename + " ∨∨∨∨∨\r\n\r\n");
             }
 
             // 检查第一层（多线程）执行情况
@@ -303,7 +309,7 @@ namespace GetWebSiteTool
                     {
                         double useTime = (DateTime.Now - startTime).TotalMilliseconds;
                         string strUseTime = getUseTime(Convert.ToInt64(useTime));
-                        ShowStatus("已完成，任务总数：" + taskTotal + "，耗时：" + strUseTime + "\r\n");
+                        logStatus("已完成，任务总数：" + taskTotal + "，耗时：" + strUseTime + "\r\n");
                     }
                 }
 
@@ -314,7 +320,7 @@ namespace GetWebSiteTool
                     string savePath2 = localPath + filename2;
                     string strGather = chkGather.Checked ? "true" : "false";
 
-                    ShowStatus("下载线程" + threadNo + "：" + filename2 + "\r\n");
+                    logStatus("下载线程" + threadNo + "：" + filename2 + "\r\n");
                     SaveWebFileMethod.BeginInvoke(url2, savePath2, new AsyncCallback(DownFinished), new string[] { url2, txtRegEx.Text.Trim(), txtGrp1.Text.Trim(), strGather, threadNo.ToString(), "1" });
                 }
             }
@@ -350,13 +356,13 @@ namespace GetWebSiteTool
                 // 如果不抓取就只打印并返回
                 if (!isGether)
                 {
-                    ShowStatus("匹配输出=" + file1 + "\r\n");
+                    logStatus("匹配输出=" + file1 + "\r\n");
                     continue;
                 }
 
                 if (maxCount > 0 && curCount > maxCount)
                 {
-                    ShowStatus("超出匹配上限（" + maxCount + "），预计舍弃数量（" + (matches.Count - maxCount) + "）\r\n");
+                    logStatus("超出匹配上限（" + maxCount + "），预计舍弃数量（" + (matches.Count - maxCount) + "）\r\n");
                     break;
                 }
 
@@ -389,7 +395,7 @@ namespace GetWebSiteTool
                 string savePath = localPath + localFile;
                 string strGather = chkGather2.Checked ? "true" : "false";
 
-                ShowStatus("下载文件：" + file1 + "\r\n");
+                logStatus("下载文件：" + file1 + "\r\n");
                 if (chkMulThread.Checked) // 是否开启多线程
                 {
                     IAsyncResult result = SaveWebFileMethod.BeginInvoke(getUrl, savePath, new AsyncCallback(DownFinished), new string[] { getUrl, txtRegEx2.Text.Trim(), txtGrp2.Text.Trim(), strGather, threadNo.ToString(), level.ToString() });
@@ -458,7 +464,7 @@ namespace GetWebSiteTool
         {
             if (e.UserState != null)
             {
-                ShowStatus("下载文件：" + e.UserState.ToString() + ",下载完成\r\n");
+                logStatus("下载文件：" + e.UserState.ToString() + ",下载完成\r\n");
             }
         }
         /// <summary>
@@ -468,7 +474,7 @@ namespace GetWebSiteTool
         /// <param name="e"></param>
         void downloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            ShowStatus("下载文件：" + e.UserState.ToString() + "," + e.ProgressPercentage + "%\r\n");
+            logStatus("下载文件：" + e.UserState.ToString() + "," + e.ProgressPercentage + "%\r\n");
         }
 
         /// <summary>
@@ -567,19 +573,37 @@ namespace GetWebSiteTool
         delegate void ShowStatusDelegate(string msg);
 
         /// <summary>
-        /// 显示状态信息
+        /// 写状态日志信息
         /// </summary>
         /// <param name="msg"></param>
-        private void ShowStatus(string msg)
+        private void logStatus(string msg)
         {
-            if (txtStatus.InvokeRequired)
+            //if (txtStatus.InvokeRequired)
+            //{
+            //    ShowStatusDelegate d = new ShowStatusDelegate(logStatus);
+            //    txtStatus.Invoke(d, msg);
+            //}
+            //else
+            //{
+            //    string info = "[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg;
+            //    statusLogBuf.Append(info);
+
+            //    // txtStatus.AppendText(info);
+            //    txtStatus.Text = searchKeyWord(txtKeyword.Text).ToString();
+            //}
+
+
+            if (brwStatus.InvokeRequired)
             {
-                ShowStatusDelegate d = new ShowStatusDelegate(ShowStatus);
-                txtStatus.Invoke(d, msg);
+                ShowStatusDelegate d = new ShowStatusDelegate(logStatus);
+                brwStatus.Invoke(d, msg);
             }
             else
             {
-                txtStatus.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg);
+                string info = "[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg;
+                statusLogBuf.Append(info);
+
+                brwStatus.DocumentText = searchKeyWord(txtKeyword.Text).ToString();
             }
         }
 
@@ -599,12 +623,12 @@ namespace GetWebSiteTool
                 return;
             }
 
-            ShowStatus("操作开始.." + "\r\n");
+            logStatus("操作开始.." + "\r\n");
             localPath = txtFolder.Text.Trim().TrimEnd('\\') + "\\";
             string newPath = localPath + txtDestDir.Text.Trim();
-            ShowStatus("原始目录：" + localPath + "\r\n");
-            ShowStatus("目标目录：" + newPath + "\r\n");
-            ShowStatus("目标文件清单如下：" + "\r\n");
+            logStatus("原始目录：" + localPath + "\r\n");
+            logStatus("目标目录：" + newPath + "\r\n");
+            logStatus("目标文件清单如下：" + "\r\n");
             if (!Directory.Exists(newPath))
             {
                 if (chkRealExecute.Checked)
@@ -626,11 +650,11 @@ namespace GetWebSiteTool
 
                 if (chkOverWrite.Checked || !File.Exists(newPath + filename))
                 {
-                    txtStatus.AppendText("拷贝文件：" + filename + "\r\n");
+                    logStatus("拷贝文件：" + filename + "\r\n");
                 }
                 else
                 {
-                    txtStatus.AppendText("跳过拷贝：" + filename + "\r\n");
+                    logStatus("跳过拷贝：" + filename + "\r\n");
                 }
 
                 if (chkRealExecute.Checked)
@@ -642,7 +666,7 @@ namespace GetWebSiteTool
                 }
             }
 
-            ShowStatus("操作结束.." + "\r\n");
+            logStatus("操作结束.." + "\r\n");
         }
 
         // 多个文件过滤器调用GetFiles，如filters="*.jpg|*.bmp"
@@ -812,5 +836,98 @@ namespace GetWebSiteTool
         }
 
         #endregion
+
+        #region 搜索框placehold效果
+
+        // 输入要检索的文字
+        private void txtKeyword_TextChanged(object sender, EventArgs e)
+        {
+            //txtStatus.Text = searchKeyWord(txtKeyword.Text).ToString();
+            brwStatus.DocumentText = searchKeyWord(txtKeyword.Text).ToString();
+            if (txtKeyword.Text.Length > 0)
+            {
+                lbPlacehold.Visible = false;
+            }
+            else
+            {
+                lbPlacehold.Visible = true;
+            }
+        }
+
+        private void txtKeyword_Enter(object sender, EventArgs e)
+        {
+            lbPlacehold.Visible = false;
+        }
+
+        private void txtKeyword_Leave(object sender, EventArgs e)
+        {
+            if (txtKeyword.Text.Length > 0)
+            {
+                lbPlacehold.Visible = false;
+            }
+            else
+            {
+                lbPlacehold.Visible = true;
+            }
+        }
+
+        private void lbPlacehold_Click(object sender, EventArgs e)
+        {
+            lbPlacehold.Visible = false;
+            txtKeyword.Focus();
+        }
+
+        #endregion
+
+        /// <summary>
+        /// 检索文字
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private StringBuilder searchKeyWord(string key)
+        {
+            StringBuilder sb = new StringBuilder();
+            int matchLines = 0, matchCount = 0;
+            if (key.Length <= 0)
+            {
+                lblMatchCount.Text = string.Format("匹配 {0} 行，{1} 处", matchLines, matchCount);
+                //return statusLogBuf;
+
+                sb = new StringBuilder("<body style='white-space: nowrap;'>" + statusLogBuf.ToString().Replace("\r\n", "<br>") + "<body>");
+                return sb;
+            }
+
+            sb.Append("<body style='white-space: nowrap;'>");
+            string[] words = Regex.Split(statusLogBuf.ToString(), "\r\n", RegexOptions.IgnoreCase);
+            CompareInfo Compare = CultureInfo.InvariantCulture.CompareInfo;
+            foreach (string line in words)
+            {
+                if (line.Length > 0)
+                {
+                    MatchCollection matches = null;
+                    try
+                    {
+                        matches = Regex.Matches(line, key, RegexOptions.IgnoreCase);
+                    }
+                    catch (Exception ex)
+                    {
+                        break;
+                    }
+                    // if (Compare.IndexOf(line, key, CompareOptions.IgnoreCase) >= 0)
+                    if (matches.Count > 0)
+                    {
+                        string newLine = Regex.Replace(line, key, "<font color='red'>$0</font>", RegexOptions.IgnoreCase);
+                        sb.Append(newLine + "<br>");
+                        // sb.Append(line + "\r\n"); 
+                        matchLines++;
+                        matchCount += matches.Count;
+                    }
+                }
+            }
+
+            lblMatchCount.Text = string.Format("匹配 {0} 行，{1} 处", matchLines, matchCount);
+            sb.Append("<body>");
+            return sb;
+        }
     }
 }
