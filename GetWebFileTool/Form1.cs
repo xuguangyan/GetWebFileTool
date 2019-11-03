@@ -481,7 +481,7 @@ namespace GetWebSiteTool
         /// 取域名及文件名
         /// </summary>
         /// <param name="url"></param>
-        /// <param name="groupid"></param>
+        /// <param name="groupid">groupid=0,全部;groupid=1,域名;groupid=2,相对路径;groupid=3,文件后缀（不带.号）;</param>
         /// <returns></returns>
         private static string getURLPart(string url, int groupid)
         {
