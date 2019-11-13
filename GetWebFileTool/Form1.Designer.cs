@@ -75,6 +75,7 @@
             this.lblMatchCount = new System.Windows.Forms.Label();
             this.brwStatus = new System.Windows.Forms.WebBrowser();
             this.lbPlacehold = new System.Windows.Forms.Label();
+            this.chkRichBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picBoxCfg)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -453,7 +454,7 @@
             // 
             this.txtKeyword.Location = new System.Drawing.Point(77, 399);
             this.txtKeyword.Name = "txtKeyword";
-            this.txtKeyword.Size = new System.Drawing.Size(312, 21);
+            this.txtKeyword.Size = new System.Drawing.Size(199, 21);
             this.txtKeyword.TabIndex = 18;
             this.txtKeyword.TextChanged += new System.EventHandler(this.txtKeyword_TextChanged);
             this.txtKeyword.Enter += new System.EventHandler(this.txtKeyword_Enter);
@@ -462,7 +463,7 @@
             // lblMatchCount
             // 
             this.lblMatchCount.AutoSize = true;
-            this.lblMatchCount.Location = new System.Drawing.Point(398, 406);
+            this.lblMatchCount.Location = new System.Drawing.Point(282, 402);
             this.lblMatchCount.Name = "lblMatchCount";
             this.lblMatchCount.Size = new System.Drawing.Size(95, 12);
             this.lblMatchCount.TabIndex = 17;
@@ -490,11 +491,24 @@
             this.lbPlacehold.Text = "请输入关键字，支持正则表达式";
             this.lbPlacehold.Click += new System.EventHandler(this.lbPlacehold_Click);
             // 
+            // chkRichBox
+            // 
+            this.chkRichBox.AutoSize = true;
+            this.chkRichBox.Location = new System.Drawing.Point(487, 401);
+            this.chkRichBox.Name = "chkRichBox";
+            this.chkRichBox.Size = new System.Drawing.Size(96, 16);
+            this.chkRichBox.TabIndex = 30;
+            this.chkRichBox.Text = "富文本状态框";
+            this.toolTip1.SetToolTip(this.chkRichBox, "切换状态框显示视图为富文本，否则为纯文本");
+            this.chkRichBox.UseVisualStyleBackColor = true;
+            this.chkRichBox.CheckedChanged += new System.EventHandler(this.chkRichBox_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(595, 424);
+            this.Controls.Add(this.chkRichBox);
             this.Controls.Add(this.lbPlacehold);
             this.Controls.Add(this.brwStatus);
             this.Controls.Add(this.lnkLabel);
@@ -590,6 +604,7 @@
         private System.Windows.Forms.Label lblMatchCount;
         private System.Windows.Forms.WebBrowser brwStatus;
         private System.Windows.Forms.Label lbPlacehold;
+        private System.Windows.Forms.CheckBox chkRichBox;
     }
 }
 

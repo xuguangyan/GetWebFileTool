@@ -62,6 +62,9 @@ namespace GetWebSiteTool
             SaveWebFileMethod = new SaveWebFileDelegate(SaveWebFile);
 
             brwStatus.DocumentText = "";
+            brwStatus.Hide();
+            txtStatus.Text = "";
+            txtStatus.Show();
         }
 
         //保存目录
@@ -79,7 +82,7 @@ namespace GetWebSiteTool
         private void txtClear_Click(object sender, EventArgs e)
         {
             statusLogBuf.Length = 0;
-            // txtStatus.Text = "";
+            txtStatus.Text = "";
             brwStatus.DocumentText = "";
         }
 
@@ -578,32 +581,36 @@ namespace GetWebSiteTool
         /// <param name="msg"></param>
         private void logStatus(string msg)
         {
-            //if (txtStatus.InvokeRequired)
-            //{
-            //    ShowStatusDelegate d = new ShowStatusDelegate(logStatus);
-            //    txtStatus.Invoke(d, msg);
-            //}
-            //else
-            //{
-            //    string info = "[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg;
-            //    statusLogBuf.Append(info);
-
-            //    // txtStatus.AppendText(info);
-            //    txtStatus.Text = searchKeyWord(txtKeyword.Text).ToString();
-            //}
-
-
-            if (brwStatus.InvokeRequired)
+            if (chkRichBox.Checked)
             {
-                ShowStatusDelegate d = new ShowStatusDelegate(logStatus);
-                brwStatus.Invoke(d, msg);
+                if (brwStatus.InvokeRequired)
+                {
+                    ShowStatusDelegate d = new ShowStatusDelegate(logStatus);
+                    brwStatus.Invoke(d, msg);
+                }
+                else
+                {
+                    string info = "[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg;
+                    statusLogBuf.Append(info);
+
+                    brwStatus.DocumentText = searchKeyWord(txtKeyword.Text).ToString();
+                }
             }
             else
             {
-                string info = "[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg;
-                statusLogBuf.Append(info);
+                if (txtStatus.InvokeRequired)
+                {
+                    ShowStatusDelegate d = new ShowStatusDelegate(logStatus);
+                    txtStatus.Invoke(d, msg);
+                }
+                else
+                {
+                    string info = "[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg;
+                    statusLogBuf.Append(info);
 
-                brwStatus.DocumentText = searchKeyWord(txtKeyword.Text).ToString();
+                    // txtStatus.AppendText(info);
+                    txtStatus.Text = searchKeyWord(txtKeyword.Text).ToString();
+                }
             }
         }
 
@@ -842,8 +849,14 @@ namespace GetWebSiteTool
         // 输入要检索的文字
         private void txtKeyword_TextChanged(object sender, EventArgs e)
         {
-            //txtStatus.Text = searchKeyWord(txtKeyword.Text).ToString();
-            brwStatus.DocumentText = searchKeyWord(txtKeyword.Text).ToString();
+            if (chkRichBox.Checked)
+            {
+                brwStatus.DocumentText = searchKeyWord(txtKeyword.Text).ToString();
+            }
+            else
+            {
+                txtStatus.Text = searchKeyWord(txtKeyword.Text).ToString();
+            }
             if (txtKeyword.Text.Length > 0)
             {
                 lbPlacehold.Visible = false;
@@ -893,11 +906,21 @@ namespace GetWebSiteTool
                 lblMatchCount.Text = string.Format("匹配 {0} 行，{1} 处", matchLines, matchCount);
                 //return statusLogBuf;
 
-                sb = new StringBuilder("<body style='white-space: nowrap;'>" + statusLogBuf.ToString().Replace("\r\n", "<br>") + "<body>");
+                if (chkRichBox.Checked)
+                {
+                    sb = new StringBuilder("<body style='white-space: nowrap;'>" + statusLogBuf.ToString().Replace("\r\n", "<br>") + "<body>");
+                }
+                else
+                {
+                    sb = new StringBuilder(statusLogBuf.ToString());
+                }
                 return sb;
             }
 
-            sb.Append("<body style='white-space: nowrap;'>");
+            if (chkRichBox.Checked)
+            {
+                sb.Append("<body style='white-space: nowrap;'>");
+            }
             string[] words = Regex.Split(statusLogBuf.ToString(), "\r\n", RegexOptions.IgnoreCase);
             CompareInfo Compare = CultureInfo.InvariantCulture.CompareInfo;
             foreach (string line in words)
@@ -916,9 +939,16 @@ namespace GetWebSiteTool
                     // if (Compare.IndexOf(line, key, CompareOptions.IgnoreCase) >= 0)
                     if (matches.Count > 0)
                     {
-                        string newLine = Regex.Replace(line, key, "<font color='red'>$0</font>", RegexOptions.IgnoreCase);
-                        sb.Append(newLine + "<br>");
-                        // sb.Append(line + "\r\n"); 
+                        if (chkRichBox.Checked)
+                        {
+                            string newLine = Regex.Replace(line, key, "<font color='red'>$0</font>", RegexOptions.IgnoreCase);
+                            sb.Append(newLine + "<br>");
+                        }
+                        else
+                        {
+                            string newLine = Regex.Replace(line, key, "【$0】", RegexOptions.IgnoreCase);
+                            sb.Append(newLine + "\r\n"); 
+                        }
                         matchLines++;
                         matchCount += matches.Count;
                     }
@@ -926,8 +956,27 @@ namespace GetWebSiteTool
             }
 
             lblMatchCount.Text = string.Format("匹配 {0} 行，{1} 处", matchLines, matchCount);
-            sb.Append("<body>");
+            if (chkRichBox.Checked)
+            {
+                sb.Append("<body>");
+            }
             return sb;
+        }
+
+        private void chkRichBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkRichBox.Checked)
+            {
+                brwStatus.Show();
+                txtStatus.Hide();
+            }
+            else
+            {
+                brwStatus.Hide();
+                txtStatus.Show();
+            }
+            
+            txtKeyword_TextChanged(txtKeyword, e);
         }
     }
 }
