@@ -594,6 +594,8 @@ namespace GetWebSiteTool
                     statusLogBuf.Append(info);
 
                     brwStatus.DocumentText = searchKeyWord(txtKeyword.Text).ToString();
+                    // 滚动至底
+                    //brwStatus.Document.Window.ScrollTo(0, brwStatus.Document.Body.ScrollRectangle.Height);
                 }
             }
             else
@@ -608,8 +610,8 @@ namespace GetWebSiteTool
                     string info = "[" + DateTime.Now.ToString("HH:mm:ss") + "]" + msg;
                     statusLogBuf.Append(info);
 
-                    // txtStatus.AppendText(info);
-                    txtStatus.Text = searchKeyWord(txtKeyword.Text).ToString();
+                    txtStatus.Clear();
+                    txtStatus.AppendText(searchKeyWord(txtKeyword.Text).ToString());
                 }
             }
         }
@@ -947,7 +949,7 @@ namespace GetWebSiteTool
                         else
                         {
                             string newLine = Regex.Replace(line, key, "【$0】", RegexOptions.IgnoreCase);
-                            sb.Append(newLine + "\r\n"); 
+                            sb.Append(newLine + "\r\n");
                         }
                         matchLines++;
                         matchCount += matches.Count;
@@ -975,7 +977,7 @@ namespace GetWebSiteTool
                 brwStatus.Hide();
                 txtStatus.Show();
             }
-            
+
             txtKeyword_TextChanged(txtKeyword, e);
         }
     }
