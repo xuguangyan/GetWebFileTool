@@ -28,8 +28,8 @@ namespace GetWebSiteTool
         const int URL_PART_DOMAIN = 1;  //域名，如：http://domain.com/ 或 //domain.com/
         const int URL_PART_PROTOCOL = 2;//协议，如：http:、https、（空串）
         const int URL_PART_PATH = 3;    //相对路径（含文件名）
-        const int URL_PART_EXT = 4;     //文件后缀（不带.号）
-        const int URL_PART_PARAM = 5;     //网址参数部分，如：?abc=123
+        const int URL_PART_PARAM = 4;     //网址参数部分，如：?abc=123
+        const int URL_PART_EXT = 5;     //文件后缀（不带.号）
 
 
         static string localPath = "";  //本地路径
@@ -186,6 +186,13 @@ namespace GetWebSiteTool
 
             //URL地址
             string url = txtURL.Text.Trim();
+
+            // 如果是网址只给出域名，则补全最后的斜杠
+            if (url.Replace("//", "").IndexOf("/") < 0)
+            {
+                url += "/";
+                txtURL.Text = url;
+            }
 
             //网址域名，如：http://moretuan.net/
             domainName = getURLPart(url, URL_PART_DOMAIN);
@@ -420,7 +427,21 @@ namespace GetWebSiteTool
                 //替换本地元素链接
                 if (chkDownWholePage.Checked)
                 {
-                    content_out = content_out.Replace(file1, localFile.Replace('\\', '/'));
+                    if (file1 != "" && file1 != "/")
+                    {
+                        if (localFile.StartsWith("index.html"))
+                        {
+                            if (!file1.EndsWith("/"))
+                            {
+                                content_out = content_out.Replace(file1 + "/", "");
+                            }
+                            content_out = content_out.Replace(file1, "");
+                        }
+                        else
+                        {
+                            content_out = content_out.Replace(file1, localFile.Replace('\\', '/'));
+                        }
+                    }
                 }
 
                 string savePath = localPath + localFile;
@@ -530,13 +551,21 @@ namespace GetWebSiteTool
         private static string getURLPart(string url, int groupid)
         {
             string cont = "";
-            string pattern = @"((http[s]?:)?//[^/]*?/)([^?]+\.([\w]+))?(.*)?";
+            string pattern = @"((http[s]?:)?//[^/]*?/)([^?]*)(\?.*)?";
             Match match = Regex.Match(url, pattern, RegexOptions.IgnoreCase);
             if (match != null)
             {
-                cont = match.Groups[groupid].Value;
+                if (groupid == URL_PART_EXT)
+                {
+                    //先取路径再分析后缀情况
+                    cont = match.Groups[URL_PART_PATH].Value;
+                }
+                else
+                {
+                    cont = match.Groups[groupid].Value;
+                }
             }
-            
+
             if (groupid == URL_PART_DOMAIN && match.Groups[URL_PART_PROTOCOL].Value == "")
             {
                 //针对 //domain.com 域名，默认补全http:协议
@@ -552,8 +581,15 @@ namespace GetWebSiteTool
 
                     //如果匹配不到文件路径，则取参数部分，再拼接成文件名
                     string param = match.Groups[URL_PART_PARAM].Value;
-                    string fileName = param.Replace("/", "_").Replace(":", "_").Replace("?", "_");
-                    cont = fileName + ".html";
+                    if (param.Length > 0)
+                    {
+                        string fileName = param.Replace("/", "_").Replace(":", "_").Replace("?", "_");
+                        cont = fileName + ".html";
+                    }
+                    else
+                    {
+                        cont = "index.html";
+                    }
                 }
                 else if (isAddParamName) //追加网址参数到文件名
                 {
@@ -570,11 +606,26 @@ namespace GetWebSiteTool
                         cont = cont + "_" + pName + "html";
                     }
                 }
+                else
+                {
+                }
             }
-            else if (groupid == URL_PART_EXT && cont == "")
+            else if (groupid == URL_PART_EXT)
             {
+                if (cont.Length > 0)
+                {
+                    int pos = cont.LastIndexOf(".");
+                    if (pos >= 0)
+                    {
+                        cont = cont.Substring(pos + 1);
+                    }
+                    else
+                    {
+                        cont = "";
+                    }
+                }
                 //如果匹配不到后缀，默认补全html
-                cont = "html";
+                //cont = "html";
             }
 
             return cont.ToString();
@@ -882,7 +933,7 @@ namespace GetWebSiteTool
             ini.WriteBool(INI_SESSION, "chkRealExecute", chkRealExecute.Checked);
             ini.WriteBool(INI_SESSION, "chkMulThread", chkMulThread.Checked);
             ini.WriteBool(INI_SESSION, "chkAddParamName", chkAddParamName.Checked);
-            ini.WriteBool(INI_SESSION, "chkDownWholePage", chkDownWholePage.Checked);
+            //ini.WriteBool(INI_SESSION, "chkDownWholePage", chkDownWholePage.Checked);
         }
 
         /// <summary>
@@ -916,7 +967,7 @@ namespace GetWebSiteTool
             chkRealExecute.Checked = ini.ReadBool(INI_SESSION, "chkRealExecute", false);
             chkMulThread.Checked = ini.ReadBool(INI_SESSION, "chkMulThread", false);
             chkAddParamName.Checked = ini.ReadBool(INI_SESSION, "chkAddParamName", false);
-            chkDownWholePage.Checked = ini.ReadBool(INI_SESSION, "chkDownWholePage", false);
+            //chkDownWholePage.Checked = ini.ReadBool(INI_SESSION, "chkDownWholePage", false);
         }
 
         #endregion
@@ -1065,7 +1116,7 @@ namespace GetWebSiteTool
                 if (dlgRst == DialogResult.Yes)
                 {
                     //配置 抓取整个页面内嵌文件 的参数
-                    txtRegEx.Text = @"(((href|src)[\s\S]*?=)|(url\())[\s\S]*?['""]([\s\S]*?)['""]";
+                    txtRegEx.Text = @"(((href|src)[\s]*?=)|(url\())[\s]*?['""]((?!javascript:).*?)['""]";
                     txtGrp1.Text = "5";
                     chkGather.Checked = true;
 
