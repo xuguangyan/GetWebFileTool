@@ -23,6 +23,15 @@ namespace GetWebSiteTool
         const int DOWNFILE_EXISTS = -2;
         const int DOWNFILE_WRITERR = -3;
 
+        //获取网址部分，正则匹配组索引
+        const int URL_PART_ALL = 0;     //全部网址
+        const int URL_PART_DOMAIN = 1;  //域名，如：http://domain.com/ 或 //domain.com/
+        const int URL_PART_PROTOCOL = 2;//协议，如：http:、https、（空串）
+        const int URL_PART_PATH = 3;    //相对路径（含文件名）
+        const int URL_PART_EXT = 4;     //文件后缀（不带.号）
+        const int URL_PART_PARAM = 5;     //网址参数部分，如：?abc=123
+
+
         static string localPath = "";  //本地路径
         static string domainName = ""; //网址域名
         static int taskTotal = 1; //总共任务数
@@ -31,6 +40,7 @@ namespace GetWebSiteTool
         static Object locker = new Object(); //线程锁
         static DateTime startTime;
         static string cur_config_file = ""; // 当前使用配置文件
+        static bool isAddParamName = false;
 
         SaveWebFileDelegate SaveWebFileMethod = null;
         StringBuilder statusLogBuf = new StringBuilder(); // 状态日志缓存区
@@ -178,10 +188,13 @@ namespace GetWebSiteTool
             string url = txtURL.Text.Trim();
 
             //网址域名，如：http://moretuan.net/
-            domainName = getURLPart(url, 1);
+            domainName = getURLPart(url, URL_PART_DOMAIN);
 
             //本地路径，如：D:\\Demo\
             localPath = txtFolder.Text.Trim().TrimEnd('\\') + "\\";
+
+            //是否追加网址参数到文件名
+            isAddParamName = chkAddParamName.Checked;
 
             //任务数
             taskTotal = 1;
@@ -230,7 +243,7 @@ namespace GetWebSiteTool
                     string num = AddZero(i.ToString(), len);
                     string url2 = url.Replace("(*)", num);
 
-                    string filename = getURLPart(url2, 2).Replace('/', '\\');
+                    string filename = getURLPart(url2, URL_PART_PATH).Replace('/', '\\');
                     string savePath = localPath + filename;
 
                     logStatus("下载线程" + threadNo + "：" + filename + "\r\n");
@@ -239,7 +252,7 @@ namespace GetWebSiteTool
             }
             else
             {
-                string filename = getURLPart(url, 2).Replace('/', '\\');
+                string filename = getURLPart(url, URL_PART_PATH).Replace('/', '\\');
                 string savePath = localPath + filename;
 
                 logStatus("下载线程" + threadNo + "：" + filename + "\r\n");
@@ -270,7 +283,7 @@ namespace GetWebSiteTool
 
             //string url = result.AsyncState.ToString();
             //string regEx = txtRegEx.Text.Trim();
-            string filename = getURLPart(url, 2).Replace('/', '\\');
+            string filename = getURLPart(url, URL_PART_PATH).Replace('/', '\\');
 
             if (level == 1)
             {
@@ -286,20 +299,15 @@ namespace GetWebSiteTool
                 logStatus("完成下载：" + filename + " (" + status + ")\r\n");
             }
 
-            string extFile = getURLPart(filename, 3);
+            string extFile = getURLPart(filename, URL_PART_EXT);
             // bool isTextFile = ("txt|xml|htm|html|shtml|asp|aspx|php|jsp|js|css".IndexOf(extFile) >= 0);
 
             //获取文件(通过regEx分析)，最多只分析到level=2层
             if (regEx != "" && (code == DOWNFILE_SUCCESS || code == DOWNFILE_EXISTS) && level < 3 /* && isTextFile*/)
             {
-                string savePath = localPath + filename;
-                StreamReader sr = File.OpenText(savePath);
-                string strContent = sr.ReadToEnd();
-                sr.Close();
-
                 logStatus("开始正则分析：" + filename + " ∧∧∧∧∧\r\n");
                 string urlPath = url.Substring(0, url.LastIndexOf("/") + 1);
-                getFileByRegex(strContent, urlPath, regEx, grpId, isGather, threadNo, level);
+                getFileByRegex(filename, urlPath, regEx, grpId, isGather, threadNo, level);
                 logStatus("完成正则分析：" + filename + " ∨∨∨∨∨\r\n\r\n");
             }
 
@@ -319,7 +327,7 @@ namespace GetWebSiteTool
                 if (urls.Count > 0)
                 {
                     string url2 = urls.Dequeue();
-                    string filename2 = getURLPart(url2, 2).Replace('/', '\\');
+                    string filename2 = getURLPart(url2, URL_PART_PATH).Replace('/', '\\');
                     string savePath2 = localPath + filename2;
                     string strGather = chkGather.Checked ? "true" : "false";
 
@@ -332,16 +340,29 @@ namespace GetWebSiteTool
         /// <summary>
         /// 获取文件(通过正则表达式分析)
         /// </summary>
-        /// <param name="content"></param>
-        /// <param name="urlPath"></param>
+        /// <param name="filename">本地文件名</param>
+        /// <param name="urlPath">网络路径</param>
         /// <param name="pattern">正则表达式</param>
         /// <param name="grpId">匹配组id</param>
         /// <param name="isGether">是否抓取文件中数据</param>
         /// <param name="threadNo">线程序号</param>
         /// <param name="level">迭代层级</param>
-        private void getFileByRegex(string content, string urlPath, string pattern, int grpId, bool isGether, int threadNo, int level)
+        private void getFileByRegex(string filename, string urlPath, string pattern, int grpId, bool isGether, int threadNo, int level)
         {
-            string filePath = getURLPart(urlPath + "test.htm", 2).Replace('/', '\\');
+            StreamReader sr = File.OpenText(localPath + filename);
+            string content = sr.ReadToEnd();
+            sr.Close();
+
+            if (content.Length <= 0)
+            {
+                logStatus("读取文件数据失败\r\n");
+                return;
+            }
+
+            // 抓取整个页面内嵌文件，记录输出内容
+            string content_out = content;
+
+            string filePath = getURLPart(urlPath + "test.htm", URL_PART_PATH).Replace('/', '\\');
             filePath = filePath.Substring(0, filePath.LastIndexOf("\\") + 1);
 
             MatchCollection matches = Regex.Matches(content, pattern, RegexOptions.IgnoreCase);
@@ -369,32 +390,39 @@ namespace GetWebSiteTool
                     break;
                 }
 
-                if (file1.StartsWith("http://") || file1.StartsWith("https://"))//如：http://www.moretuan.net/tuan/feed.php
+                if (file1.StartsWith("//")) //如：//www.moretuan.net/tuan/feed.php
                 {
-                    //if (file1.IndexOf(domainName) < 0)
-                    //{
-                    //    ShowStatus("发现外部资源：" + file1 + "\r\n");
-                    //    continue;   //外部资源不下载
-                    //}
-                    getUrl = file1; //如：http://www.moretuan.net/tuan/feed.php?ename=GZ
-                    localFile = getURLPart(file1, 2).Replace('/', '\\');
+                    getUrl = "http:" + file1;
+                    localFile = getURLPart(getUrl, URL_PART_PATH).Replace('/', '\\');
                 }
-                else if (file1.StartsWith("/"))      //如：/tuan/feed.php
+                else if (file1.StartsWith("http://") || file1.StartsWith("https://")) //如：http://www.moretuan.net/tuan/feed.php
+                {
+                    getUrl = file1;
+                    localFile = getURLPart(getUrl, URL_PART_PATH).Replace('/', '\\');
+                }
+                else if (file1.StartsWith("/"))      //根目录形式，如：/tuan/feed.php
                 {
                     //如："http://moretuan.net/" + "tuan/feed.php"
                     getUrl = domainName + file1.TrimStart('/');
 
                     //保存图片文件，如："tuan\feed.php"
-                    localFile = file1.TrimStart('/').Replace('/', '\\');
+                    localFile = getURLPart(getUrl, URL_PART_PATH).Replace('/', '\\');
                 }
-                else
+                else //相对目录形式，如：tuan/feed.php
                 {
                     //如："http://moretuan.net/tuan/" + "tuan/feed.php"
                     getUrl = urlPath + file1;
 
                     //保存图片文件，如："tuan\" + "tuan\feed.php"
-                    localFile = filePath + file1.Replace('/', '\\');
+                    localFile = getURLPart(getUrl, URL_PART_PATH).Replace('/', '\\');
                 }
+
+                //替换本地元素链接
+                if (chkDownWholePage.Checked)
+                {
+                    content_out = content_out.Replace(file1, localFile.Replace('\\', '/'));
+                }
+
                 string savePath = localPath + localFile;
                 string strGather = chkGather2.Checked ? "true" : "false";
 
@@ -409,6 +437,19 @@ namespace GetWebSiteTool
                     int rstCode = SaveWebFileMethod.EndInvoke(result);  //阻塞线程，实行单线程下线
                     DownFinished_End(result, rstCode);
                 }
+            }
+
+            // 生成引用本地元素的新页面
+            if (chkDownWholePage.Checked && content_out.Length > 0)
+            {
+                int pos = filename.LastIndexOf(".");
+                string outfile = filename.Substring(0, pos) + "_out" + filename.Substring(pos);
+                string outPath = localPath + outfile;
+                StreamWriter sw = new StreamWriter(File.OpenWrite(outPath));
+                sw.Write(content_out);
+                sw.Close();
+
+                logStatus("输出新页面=" + outPath + "\r\n");
             }
         }
 
@@ -484,25 +525,55 @@ namespace GetWebSiteTool
         /// 取域名及文件名
         /// </summary>
         /// <param name="url"></param>
-        /// <param name="groupid">groupid=0,全部;groupid=1,域名;groupid=2,相对路径;groupid=3,文件后缀（不带.号）;</param>
+        /// <param name="groupid">正则匹配组索引，参见常量：URL_PART_XXX</param>
         /// <returns></returns>
         private static string getURLPart(string url, int groupid)
         {
             string cont = "";
-            string pattern = @"(http[s]?://[^/]*?/)([^\.]+\.([\w]{1,4}))?[\s\S]*";
+            string pattern = @"((http[s]?:)?//[^/]*?/)([^?]+\.([\w]+))?(.*)?";
             Match match = Regex.Match(url, pattern, RegexOptions.IgnoreCase);
             if (match != null)
             {
                 cont = match.Groups[groupid].Value;
             }
-
-            if (groupid == 2 && cont == "")
+            
+            if (groupid == URL_PART_DOMAIN && match.Groups[URL_PART_PROTOCOL].Value == "")
             {
-                string fileName = url.Replace("/", "").Replace(":", "").Replace("?", "");
-                cont = fileName + ".html";
+                //针对 //domain.com 域名，默认补全http:协议
+                cont = "http:" + cont;
             }
-            else if (groupid == 3 && cont == "")
+            else if (groupid == URL_PART_PATH)
             {
+                if (cont == "")
+                {
+                    //如果匹配不到文件路径，则将url去掉域名，再拼接成文件名
+                    //string path = Regex.Replace(url, @"(http[s]?://[^/]*?/)", "");
+                    //string fileName = path.Replace("/", "_").Replace(":", "_").Replace("?", "_");
+
+                    //如果匹配不到文件路径，则取参数部分，再拼接成文件名
+                    string param = match.Groups[URL_PART_PARAM].Value;
+                    string fileName = param.Replace("/", "_").Replace(":", "_").Replace("?", "_");
+                    cont = fileName + ".html";
+                }
+                else if (isAddParamName) //追加网址参数到文件名
+                {
+                    //为了应对URL只有参数变化的情况，抓取不同参数网址文件，如：detail.htm?id=1，文件存储名为detail_id=1.htm
+                    string param = match.Groups[URL_PART_PARAM].Value;
+                    string pName = param.Replace("/", "_").Replace(":", "_").Replace("?", "_");
+                    int pos = cont.LastIndexOf('.');
+                    if (pos >= 0)
+                    {
+                        cont = cont.Substring(0, pos) + "_" + pName + cont.Substring(pos);
+                    }
+                    else
+                    {
+                        cont = cont + "_" + pName + "html";
+                    }
+                }
+            }
+            else if (groupid == URL_PART_EXT && cont == "")
+            {
+                //如果匹配不到后缀，默认补全html
                 cont = "html";
             }
 
@@ -979,6 +1050,26 @@ namespace GetWebSiteTool
             }
 
             txtKeyword_TextChanged(txtKeyword, e);
+        }
+
+        private void chkDownWholePage_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkDownWholePage.Checked)
+            {
+                //下载页面元素及完整页面，生成引用本地元素的新页面
+                DialogResult dlgRst = MessageBox.Show("将改变当前界面的配置参数（只设置第一层正则），确认操作？", "温馨提示", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                if (dlgRst == DialogResult.Yes)
+                {
+                    //配置 抓取整个页面内嵌文件 的参数
+                    txtRegEx.Text = @"(((href|src)[\s\S]*?=)|(url\())[\s\S]*?['""]([\s\S]*?)['""]";
+                    txtGrp1.Text = "5";
+                    chkGather.Checked = true;
+
+                    txtRegEx2.Text = "";
+                    txtGrp2.Text = "0";
+                    chkGather2.Checked = false;
+                }
+            }
         }
     }
 }

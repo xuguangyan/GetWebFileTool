@@ -64,6 +64,7 @@
             this.txtMaxCount = new System.Windows.Forms.TextBox();
             this.chkMulThread = new System.Windows.Forms.CheckBox();
             this.picBoxCfg = new System.Windows.Forms.PictureBox();
+            this.chkRichBox = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkOverWrite = new System.Windows.Forms.CheckBox();
             this.lblDestDir = new System.Windows.Forms.Label();
@@ -75,7 +76,8 @@
             this.lblMatchCount = new System.Windows.Forms.Label();
             this.brwStatus = new System.Windows.Forms.WebBrowser();
             this.lbPlacehold = new System.Windows.Forms.Label();
-            this.chkRichBox = new System.Windows.Forms.CheckBox();
+            this.chkAddParamName = new System.Windows.Forms.CheckBox();
+            this.chkDownWholePage = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picBoxCfg)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -108,7 +110,7 @@
             // 
             // btnGet
             // 
-            this.btnGet.Location = new System.Drawing.Point(508, 154);
+            this.btnGet.Location = new System.Drawing.Point(569, 154);
             this.btnGet.Name = "btnGet";
             this.btnGet.Size = new System.Drawing.Size(75, 31);
             this.btnGet.TabIndex = 3;
@@ -128,7 +130,7 @@
             // 
             // txtClear
             // 
-            this.txtClear.Location = new System.Drawing.Point(508, 191);
+            this.txtClear.Location = new System.Drawing.Point(569, 191);
             this.txtClear.Name = "txtClear";
             this.txtClear.Size = new System.Drawing.Size(75, 29);
             this.txtClear.TabIndex = 5;
@@ -170,7 +172,7 @@
             // 
             // txtLen
             // 
-            this.txtLen.Location = new System.Drawing.Point(554, 10);
+            this.txtLen.Location = new System.Drawing.Point(553, 10);
             this.txtLen.Name = "txtLen";
             this.txtLen.Size = new System.Drawing.Size(24, 21);
             this.txtLen.TabIndex = 12;
@@ -188,7 +190,7 @@
             // lbLen
             // 
             this.lbLen.AutoSize = true;
-            this.lbLen.Location = new System.Drawing.Point(488, 16);
+            this.lbLen.Location = new System.Drawing.Point(487, 16);
             this.lbLen.Name = "lbLen";
             this.lbLen.Size = new System.Drawing.Size(65, 12);
             this.lbLen.TabIndex = 14;
@@ -276,7 +278,7 @@
             // lblThreadNum
             // 
             this.lblThreadNum.AutoSize = true;
-            this.lblThreadNum.Location = new System.Drawing.Point(500, 40);
+            this.lblThreadNum.Location = new System.Drawing.Point(580, 15);
             this.lblThreadNum.Name = "lblThreadNum";
             this.lblThreadNum.Size = new System.Drawing.Size(53, 12);
             this.lblThreadNum.TabIndex = 14;
@@ -284,7 +286,7 @@
             // 
             // txtThreadNum
             // 
-            this.txtThreadNum.Location = new System.Drawing.Point(554, 37);
+            this.txtThreadNum.Location = new System.Drawing.Point(634, 12);
             this.txtThreadNum.Name = "txtThreadNum";
             this.txtThreadNum.Size = new System.Drawing.Size(24, 21);
             this.txtThreadNum.TabIndex = 12;
@@ -293,7 +295,7 @@
             // chkGather2
             // 
             this.chkGather2.AutoSize = true;
-            this.chkGather2.Location = new System.Drawing.Point(494, 112);
+            this.chkGather2.Location = new System.Drawing.Point(494, 115);
             this.chkGather2.Name = "chkGather2";
             this.chkGather2.Size = new System.Drawing.Size(72, 16);
             this.chkGather2.TabIndex = 22;
@@ -305,7 +307,7 @@
             // chkGather
             // 
             this.chkGather.AutoSize = true;
-            this.chkGather.Location = new System.Drawing.Point(494, 86);
+            this.chkGather.Location = new System.Drawing.Point(494, 83);
             this.chkGather.Name = "chkGather";
             this.chkGather.Size = new System.Drawing.Size(72, 16);
             this.chkGather.TabIndex = 23;
@@ -345,9 +347,9 @@
             // 
             // txtMaxCount
             // 
-            this.txtMaxCount.Location = new System.Drawing.Point(554, 59);
+            this.txtMaxCount.Location = new System.Drawing.Point(553, 41);
             this.txtMaxCount.Name = "txtMaxCount";
-            this.txtMaxCount.Size = new System.Drawing.Size(37, 21);
+            this.txtMaxCount.Size = new System.Drawing.Size(24, 21);
             this.txtMaxCount.TabIndex = 12;
             this.txtMaxCount.Text = "0";
             this.toolTip1.SetToolTip(this.txtMaxCount, "每层嵌套匹配数量上限值（0表示不限），防止横向过度耗时");
@@ -355,7 +357,7 @@
             // chkMulThread
             // 
             this.chkMulThread.AutoSize = true;
-            this.chkMulThread.Location = new System.Drawing.Point(507, 132);
+            this.chkMulThread.Location = new System.Drawing.Point(576, 44);
             this.chkMulThread.Name = "chkMulThread";
             this.chkMulThread.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.chkMulThread.Size = new System.Drawing.Size(84, 16);
@@ -369,13 +371,25 @@
             // 
             this.picBoxCfg.Cursor = System.Windows.Forms.Cursors.Hand;
             this.picBoxCfg.Image = global::GetWebFileTool.Properties.Resources.gif_57_054;
-            this.picBoxCfg.Location = new System.Drawing.Point(554, 85);
+            this.picBoxCfg.Location = new System.Drawing.Point(460, 399);
             this.picBoxCfg.Name = "picBoxCfg";
-            this.picBoxCfg.Size = new System.Drawing.Size(37, 28);
+            this.picBoxCfg.Size = new System.Drawing.Size(37, 22);
             this.picBoxCfg.TabIndex = 25;
             this.picBoxCfg.TabStop = false;
             this.toolTip1.SetToolTip(this.picBoxCfg, "载入配置文件");
             this.picBoxCfg.Click += new System.EventHandler(this.picBoxCfg_Click);
+            // 
+            // chkRichBox
+            // 
+            this.chkRichBox.AutoSize = true;
+            this.chkRichBox.Location = new System.Drawing.Point(548, 401);
+            this.chkRichBox.Name = "chkRichBox";
+            this.chkRichBox.Size = new System.Drawing.Size(96, 16);
+            this.chkRichBox.TabIndex = 30;
+            this.chkRichBox.Text = "富文本状态框";
+            this.toolTip1.SetToolTip(this.chkRichBox, "切换状态框显示视图为富文本，否则为纯文本");
+            this.chkRichBox.UseVisualStyleBackColor = true;
+            this.chkRichBox.CheckedChanged += new System.EventHandler(this.chkRichBox_CheckedChanged);
             // 
             // groupBox1
             // 
@@ -386,7 +400,7 @@
             this.groupBox1.Controls.Add(this.txtDestDir);
             this.groupBox1.Controls.Add(this.txtFileExt);
             this.groupBox1.Controls.Add(this.btnCopy);
-            this.groupBox1.Location = new System.Drawing.Point(502, 219);
+            this.groupBox1.Location = new System.Drawing.Point(563, 219);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(92, 177);
             this.groupBox1.TabIndex = 24;
@@ -423,7 +437,7 @@
             // lblMaxCount
             // 
             this.lblMaxCount.AutoSize = true;
-            this.lblMaxCount.Location = new System.Drawing.Point(488, 62);
+            this.lblMaxCount.Location = new System.Drawing.Point(487, 44);
             this.lblMaxCount.Name = "lblMaxCount";
             this.lblMaxCount.Size = new System.Drawing.Size(65, 12);
             this.lblMaxCount.TabIndex = 14;
@@ -433,7 +447,7 @@
             // 
             this.lnkLabel.AutoSize = true;
             this.lnkLabel.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkLabel.Location = new System.Drawing.Point(562, 112);
+            this.lnkLabel.Location = new System.Drawing.Point(507, 406);
             this.lnkLabel.Name = "lnkLabel";
             this.lnkLabel.Size = new System.Drawing.Size(35, 12);
             this.lnkLabel.TabIndex = 26;
@@ -475,7 +489,7 @@
             this.brwStatus.Location = new System.Drawing.Point(14, 147);
             this.brwStatus.MinimumSize = new System.Drawing.Size(20, 20);
             this.brwStatus.Name = "brwStatus";
-            this.brwStatus.Size = new System.Drawing.Size(488, 249);
+            this.brwStatus.Size = new System.Drawing.Size(543, 249);
             this.brwStatus.TabIndex = 28;
             // 
             // lbPlacehold
@@ -491,29 +505,42 @@
             this.lbPlacehold.Text = "请输入关键字，支持正则表达式";
             this.lbPlacehold.Click += new System.EventHandler(this.lbPlacehold_Click);
             // 
-            // chkRichBox
+            // chkAddParamName
             // 
-            this.chkRichBox.AutoSize = true;
-            this.chkRichBox.Location = new System.Drawing.Point(487, 401);
-            this.chkRichBox.Name = "chkRichBox";
-            this.chkRichBox.Size = new System.Drawing.Size(96, 16);
-            this.chkRichBox.TabIndex = 30;
-            this.chkRichBox.Text = "富文本状态框";
-            this.toolTip1.SetToolTip(this.chkRichBox, "切换状态框显示视图为富文本，否则为纯文本");
-            this.chkRichBox.UseVisualStyleBackColor = true;
-            this.chkRichBox.CheckedChanged += new System.EventHandler(this.chkRichBox_CheckedChanged);
+            this.chkAddParamName.AutoSize = true;
+            this.chkAddParamName.Location = new System.Drawing.Point(568, 76);
+            this.chkAddParamName.Name = "chkAddParamName";
+            this.chkAddParamName.Size = new System.Drawing.Size(96, 28);
+            this.chkAddParamName.TabIndex = 23;
+            this.chkAddParamName.Text = "追加网址参数\r\n到文件名";
+            this.toolTip1.SetToolTip(this.chkAddParamName, "为了应对URL只有参数变化的情况，抓取不同参数网址文件，如：detail.htm?id=1，文件存储名为detail_id=1.htm");
+            this.chkAddParamName.UseVisualStyleBackColor = true;
+            // 
+            // chkDownWholePage
+            // 
+            this.chkDownWholePage.AutoSize = true;
+            this.chkDownWholePage.Location = new System.Drawing.Point(568, 109);
+            this.chkDownWholePage.Name = "chkDownWholePage";
+            this.chkDownWholePage.Size = new System.Drawing.Size(96, 28);
+            this.chkDownWholePage.TabIndex = 23;
+            this.chkDownWholePage.Text = "抓取整个页面\r\n内嵌文件";
+            this.toolTip1.SetToolTip(this.chkDownWholePage, "下载页面元素及完整页面，生成引用本地元素的新页面");
+            this.chkDownWholePage.UseVisualStyleBackColor = true;
+            this.chkDownWholePage.CheckedChanged += new System.EventHandler(this.chkDownWholePage_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(595, 424);
+            this.ClientSize = new System.Drawing.Size(663, 424);
             this.Controls.Add(this.chkRichBox);
             this.Controls.Add(this.lbPlacehold);
             this.Controls.Add(this.brwStatus);
             this.Controls.Add(this.lnkLabel);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.chkGather2);
+            this.Controls.Add(this.chkDownWholePage);
+            this.Controls.Add(this.chkAddParamName);
             this.Controls.Add(this.chkMulThread);
             this.Controls.Add(this.chkGather);
             this.Controls.Add(this.txtKeyword);
@@ -605,6 +632,8 @@
         private System.Windows.Forms.WebBrowser brwStatus;
         private System.Windows.Forms.Label lbPlacehold;
         private System.Windows.Forms.CheckBox chkRichBox;
+        private System.Windows.Forms.CheckBox chkAddParamName;
+        private System.Windows.Forms.CheckBox chkDownWholePage;
     }
 }
 
