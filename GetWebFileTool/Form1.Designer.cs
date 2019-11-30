@@ -124,7 +124,7 @@
             this.txtStatus.Multiline = true;
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtStatus.Size = new System.Drawing.Size(488, 249);
+            this.txtStatus.Size = new System.Drawing.Size(543, 249);
             this.txtStatus.TabIndex = 4;
             this.txtStatus.WordWrap = false;
             // 
@@ -144,6 +144,7 @@
             this.txtURL.Name = "txtURL";
             this.txtURL.Size = new System.Drawing.Size(333, 21);
             this.txtURL.TabIndex = 7;
+            this.toolTip1.SetToolTip(this.txtURL, "支持通配符，格式：(*)");
             // 
             // lbURL
             // 
@@ -371,7 +372,7 @@
             // 
             this.picBoxCfg.Cursor = System.Windows.Forms.Cursors.Hand;
             this.picBoxCfg.Image = global::GetWebFileTool.Properties.Resources.gif_57_054;
-            this.picBoxCfg.Location = new System.Drawing.Point(460, 399);
+            this.picBoxCfg.Location = new System.Drawing.Point(576, 399);
             this.picBoxCfg.Name = "picBoxCfg";
             this.picBoxCfg.Size = new System.Drawing.Size(37, 22);
             this.picBoxCfg.TabIndex = 25;
@@ -382,7 +383,7 @@
             // chkRichBox
             // 
             this.chkRichBox.AutoSize = true;
-            this.chkRichBox.Location = new System.Drawing.Point(548, 401);
+            this.chkRichBox.Location = new System.Drawing.Point(470, 404);
             this.chkRichBox.Name = "chkRichBox";
             this.chkRichBox.Size = new System.Drawing.Size(96, 16);
             this.chkRichBox.TabIndex = 30;
@@ -447,7 +448,7 @@
             // 
             this.lnkLabel.AutoSize = true;
             this.lnkLabel.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.lnkLabel.Location = new System.Drawing.Point(507, 406);
+            this.lnkLabel.Location = new System.Drawing.Point(623, 406);
             this.lnkLabel.Name = "lnkLabel";
             this.lnkLabel.Size = new System.Drawing.Size(35, 12);
             this.lnkLabel.TabIndex = 26;

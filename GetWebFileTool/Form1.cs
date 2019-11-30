@@ -881,6 +881,8 @@ namespace GetWebSiteTool
             ini.WriteBool(INI_SESSION, "chkOverWrite", chkOverWrite.Checked);
             ini.WriteBool(INI_SESSION, "chkRealExecute", chkRealExecute.Checked);
             ini.WriteBool(INI_SESSION, "chkMulThread", chkMulThread.Checked);
+            ini.WriteBool(INI_SESSION, "chkAddParamName", chkAddParamName.Checked);
+            ini.WriteBool(INI_SESSION, "chkDownWholePage", chkDownWholePage.Checked);
         }
 
         /// <summary>
@@ -913,6 +915,8 @@ namespace GetWebSiteTool
             chkOverWrite.Checked = ini.ReadBool(INI_SESSION, "chkOverWrite", false);
             chkRealExecute.Checked = ini.ReadBool(INI_SESSION, "chkRealExecute", false);
             chkMulThread.Checked = ini.ReadBool(INI_SESSION, "chkMulThread", false);
+            chkAddParamName.Checked = ini.ReadBool(INI_SESSION, "chkAddParamName", false);
+            chkDownWholePage.Checked = ini.ReadBool(INI_SESSION, "chkDownWholePage", false);
         }
 
         #endregion
